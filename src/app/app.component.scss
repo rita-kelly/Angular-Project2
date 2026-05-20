@@ -157,3 +157,39 @@
   }
 }
 
+// Avatar styles
+.avatar-image {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(96, 165, 250, 0.3);
+}
+
+.avatar-initials {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(96, 165, 250, 0.16);
+  font-size: 12px;
+  font-weight: 700;
+  color: #e7eefc;
+  border: 2px solid rgba(96, 165, 250, 0.3);
+}
+
+.profile-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  color: #e7eefc;
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.profile-link:hover {
+  opacity: 1;
+}

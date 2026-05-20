@@ -243,3 +243,200 @@ select option {
     grid-template-columns: 1fr;
   }
 }
+// Stats grid styles
+.stats-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #e7eefc;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: rgba(231, 238, 252, 0.72);
+}
+
+@media (max-width: 920px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+// Selected row styling in table
+.tr {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tr.selected {
+  background: rgba(59, 130, 246, 0.12) !important;
+  border-left: 3px solid rgba(59, 130, 246, 0.6);
+}
+
+.tr.selected:hover {
+  background: rgba(59, 130, 246, 0.16) !important;
+}
+// Percentage chart panel styles - Centered and improved
+.percentage-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  
+  .panel-title {
+    margin-bottom: 20px;
+    width: 100%;
+  }
+}
+
+.percentage-chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.percentage-chart {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  margin: 0 auto 24px;
+}
+
+.percentage-chart canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.chart-center-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 10;
+}
+
+.chart-center-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #e7eefc;
+  line-height: 1;
+}
+
+.chart-center-text {
+  font-size: 12px;
+  color: rgba(231, 238, 252, 0.7);
+  margin-top: 4px;
+}
+
+.percentage-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.percentage-stat {
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.percentage-stat:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.percentage-label {
+  font-size: 11px;
+  color: rgba(231, 238, 252, 0.8);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.percentage-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #e7eefc;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.percentage-percent {
+  font-size: 12px;
+  color: rgba(231, 238, 252, 0.7);
+  font-weight: 500;
+}
+
+// Adjust grid layout for new design
+.grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(360px, 1.25fr);
+  gap: 20px;
+}
+
+@media (max-width: 920px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .percentage-stats {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .percentage-stats {
+    grid-template-columns: 1fr;
+    max-width: 300px;
+  }
+  
+  .percentage-chart {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .chart-center-value {
+    font-size: 24px;
+  }
+}
+// Chart center subtext
+.chart-center-subtext {
+  font-size: 10px;
+  color: rgba(231, 238, 252, 0.6);
+  margin-top: 2px;
+  font-weight: 400;
+}

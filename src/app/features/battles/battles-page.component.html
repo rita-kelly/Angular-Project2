@@ -20,63 +20,69 @@
     </div>
   </header>
 
+
+
   <div class="grid">
-    <section class="panel form-panel">
+    <section class="panel percentage-panel">
       <div class="panel-title">
-        <h2>Log battle</h2>
         <span>{{ state().trainer?.name ?? "Trainer" }}</span>
       </div>
-
-      <form [formGroup]="form" (ngSubmit)="logBattle()">
-        <label class="field">
-          <span>Opponent</span>
-          <input type="text" formControlName="opponentName" placeholder="Elite trainer" autocomplete="off" />
-        </label>
-
-        <label class="field">
-          <span>Team</span>
-          <select formControlName="teamId">
-            @for (team of state().teams; track teamId(team)) {
-              <option [ngValue]="team.id">{{ team.name }}</option>
-            }
-          </select>
-        </label>
-
-        <div class="row">
-          <label class="field">
-            <span>Result</span>
-            <select formControlName="result">
-              <option value="win">Win</option>
-              <option value="loss">Loss</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>Date</span>
-            <input type="date" formControlName="date" />
-          </label>
+      
+      <div class="percentage-chart-container">
+        <div class="percentage-chart">
+          <canvas baseChart [type]="'pie'" [data]="pieChartData()" [options]="pieChartOptions"></canvas>
+          <div class="chart-center-label">
+            <div class="chart-center-value">
+              @if (scoreWinPercentage() !== null) {
+                {{ scoreWinPercentage() }}%
+              } @else {
+                {{ selectedWinRate() }}%
+              }
+            </div>
+            <div class="chart-center-text">
+              @if (scoreWinPercentage() !== null) {
+                @if (selectedBattle()!.result === 'win') {
+                  Win %
+                } @else {
+                  Loss %
+                }
+              } @else {
+                Win Rate
+              }
+            </div>
+          </div>
         </div>
-
-        <div class="row">
-          <label class="field">
-            <span>Your score</span>
-            <input type="number" min="0" max="6" formControlName="scoreTrainer" />
-          </label>
-
-          <label class="field">
-            <span>Opponent score</span>
-            <input type="number" min="0" max="6" formControlName="scoreOpponent" />
-          </label>
+        
+        <div class="percentage-stats">
+          <div class="percentage-stat">
+            <div class="percentage-label">Wins</div>
+            <div class="percentage-value">{{ displayWins() }}</div>
+            <div class="percentage-percent">{{ winPercentage() }}%</div>
+          </div>
+          <div class="percentage-stat">
+            <div class="percentage-label">Losses</div>
+            <div class="percentage-value">{{ displayLosses() }}</div>
+            <div class="percentage-percent">{{ lossPercentage() }}%</div>
+          </div>
+          <div class="percentage-stat">
+            <div class="percentage-label">Win Rate</div>
+            <div class="percentage-value">
+              @if (scoreWinPercentage() !== null) {
+                {{ scoreWinPercentage() }}%
+              } @else {
+                {{ selectedWinRate() }}%
+              }
+            </div>
+            <div class="percentage-percent">
+              @if (scoreWinPercentage() !== null) {
+                from score
+              } @else {
+                overall
+              }
+            </div>
+          </div>
         </div>
-
-        @if (statusMessage(); as message) {
-          <p class="status">{{ message }}</p>
-        }
-
-        <button class="primary" type="submit" [disabled]="state().mutating">
-          {{ state().mutating ? "Saving..." : "Save result" }}
-        </button>
-      </form>
+      </div>
     </section>
 
     <section class="panel chart-panel">
@@ -85,7 +91,7 @@
         <span>{{ state().battles.length }} battles</span>
       </div>
       <div class="chart-wrap">
-        <canvas baseChart [type]="'bar'" [data]="chartData()" [options]="chartOptions"></canvas>
+        <canvas baseChart [type]="'bar'" [data]="barChartData()" [options]="barChartOptions"></canvas>
       </div>
     </section>
 
@@ -104,7 +110,7 @@
           <span>Score</span>
         </div>
         @for (battle of state().battles; track battleId(battle)) {
-          <article class="tr">
+          <article class="tr" [class.selected]="isSelected(battle)" (click)="selectBattle(battle)">
             <span>{{ battle.date }}</span>
             <strong>{{ battle.opponent_name }}</strong>
             <span>{{ teamName(battle.team_id) }}</span>

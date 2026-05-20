@@ -28,7 +28,9 @@
         <span></span>
       </button>
       <span class="toolbar-title">Pokedex Trainer Dashboard</span>
-      <a class="profile-link" routerLink="/profile">Profile</a>
+      <a class="profile-link" routerLink="/profile" [attr.aria-label]="state().trainer?.name || 'Profile'">
+        <span class="avatar-initials">{{ trainerAvatar() }}</span>
+      </a>
     </header>
 
     <main class="main">
