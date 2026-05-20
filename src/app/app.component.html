@@ -29,7 +29,11 @@
       </button>
       <span class="toolbar-title">Pokedex Trainer Dashboard</span>
       <a class="profile-link" routerLink="/profile" [attr.aria-label]="state().trainer?.name || 'Profile'">
-        <span class="avatar-initials">{{ trainerAvatar() }}</span>
+        @if (state().trainer?.avatar_url; as avatarUrl) {
+          <img class="avatar-image" [src]="avatarUrl" [alt]="state().trainer?.name || 'Trainer'" />
+        } @else {
+          <span class="avatar-initials">{{ trainerAvatar() }}</span>
+        }
       </a>
     </header>
 

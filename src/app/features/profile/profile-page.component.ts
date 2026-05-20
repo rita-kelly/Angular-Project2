@@ -41,12 +41,14 @@ export class ProfilePageComponent {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(2), Validators.maxLength(24)],
     }),
-    avatarUrl: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(300)] }),
+    avatarUrl: new FormControl("", { nonNullable: true }),
     rank: new FormControl("", {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(2), Validators.maxLength(30)],
     }),
   });
+
+  public readonly avatarPreview = signal<string | null>(null);
 
   public readonly selectedTrainer = computed(() => this.state().trainer);
   public readonly battleRecord = computed(() => {
@@ -131,6 +133,8 @@ export class ProfilePageComponent {
       .subscribe((updated) => {
         if (updated) {
           this.statusMessage.set(`Saved ${updated.name}.`);
+          // Clear avatar preview after successful save
+          this.avatarPreview.set(null);
         }
       });
   }
@@ -176,6 +180,55 @@ export class ProfilePageComponent {
   }
 
   /**
+   * Handles file selection for avatar upload.
+   *
+   * @param event - File input change event
+   */
+  public onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      this.statusMessage.set('Please select an image file.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      this.statusMessage.set('Image size should be less than 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      
+      // Check if data URL is too long (rough estimate for GraphQL/DB limits)
+      if (dataUrl.length > 1000000) { // ~1MB character limit
+        this.statusMessage.set('Image is too large. Please select a smaller image.');
+        return;
+      }
+      
+      this.avatarPreview.set(dataUrl);
+      this.form.controls.avatarUrl.setValue(dataUrl);
+      this.form.markAsDirty();
+      this.statusMessage.set(null);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /**
+   * Removes the uploaded avatar.
+   */
+  public removeAvatar(): void {
+    this.avatarPreview.set(null);
+    this.form.controls.avatarUrl.setValue('');
+    this.form.markAsDirty();
+  }
+
+  /**
    * Patches the profile form from a loaded trainer.
    *
    * @param trainer - Loaded trainer
@@ -192,6 +245,13 @@ export class ProfilePageComponent {
       { emitEvent: false },
     );
     this.form.markAsPristine();
+    
+    // Set avatar preview if avatar_url is a data URL
+    if (trainer.avatar_url && trainer.avatar_url.startsWith('data:image/')) {
+      this.avatarPreview.set(trainer.avatar_url);
+    } else {
+      this.avatarPreview.set(null);
+    }
   }
 
   /**

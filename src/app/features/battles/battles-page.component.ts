@@ -124,51 +124,16 @@ export class BattlesPageComponent {
     }
   });
 
-  // Calculate scores based on win rate for selected battle
+  // Get scores from selected battle
   public readonly calculatedScores = computed(() => {
     const selected = this.selectedBattle();
-    const winRate = this.winRate() / 100; // Convert to decimal (0 to 1)
     
     if (!selected) {
       return null;
     }
     
-    // More realistic score calculation based on Pokemon battle patterns
-    // Wins are usually 3-1, 3-2, 3-0, 4-1
-    // Losses are usually 1-3, 2-3
-    
-    // Use battle ID to make score deterministic but varied
-    const battleId = selected.id;
-    
-    if (selected.result === "win") {
-      // For wins: trainer should have higher score
-      // Base score depends on win rate
-      if (winRate >= 0.7) {
-        // High win rate: decisive victory (3-0 or 3-1)
-        const opponentScore = battleId % 2; // 0 or 1 based on battle ID
-        return { trainer: 3, opponent: opponentScore };
-      } else if (winRate >= 0.5) {
-        // Moderate win rate: close victory (3-2)
-        return { trainer: 3, opponent: 2 };
-      } else {
-        // Low win rate: very close victory (3-2)
-        return { trainer: 3, opponent: 2 };
-      }
-    } else {
-      // For losses: opponent should have higher score
-      if (winRate >= 0.7) {
-        // High win rate but lost: close loss (2-3)
-        return { trainer: 2, opponent: 3 };
-      } else if (winRate >= 0.5) {
-        // Moderate win rate: standard loss (1-3 or 2-3)
-        const trainerScore = (battleId % 2) + 1; // 1 or 2 based on battle ID
-        return { trainer: trainerScore, opponent: 3 };
-      } else {
-        // Low win rate: decisive loss (0-3 or 1-3)
-        const trainerScore = battleId % 2; // 0 or 1 based on battle ID
-        return { trainer: trainerScore, opponent: 3 };
-      }
-    }
+    // Use actual scores from the battle data
+    return { trainer: selected.score_trainer, opponent: selected.score_opponent };
   });
   public readonly latestFeed = computed(() => [...this.state().liveBattleFeed].reverse().slice(0, 10));
   // Pie chart data for win/loss distribution
