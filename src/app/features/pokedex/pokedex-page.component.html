@@ -1,0 +1,163 @@
+<section class="pokedex-shell">
+  <div class="drawer-content">
+    <div class="header">
+      <div class="title">
+        <h1>Pokedex</h1>
+        <p>Filter, sort, and select Pokemon. Click a row to open details.</p>
+      </div>
+
+      <div class="actions">
+        <label class="field search">
+          <span>Search</span>
+          <input [formControl]="searchControl" placeholder="Search by name" />
+        </label>
+
+        <label class="toggle">
+          <input
+            type="checkbox"
+            [checked]="mode() === 'virtual'"
+            (change)="mode.set($any($event.target).checked ? 'virtual' : 'paged')"
+          />
+          <span>Scroll mode</span>
+        </label>
+
+        <button class="primary" type="button" (click)="loadMore()">Load More</button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <label class="field type">
+        <span>Type</span>
+        <select [value]="selectedType() ?? ''" (change)="setTypeFromValue($any($event.target).value)">
+          <option value="">All</option>
+          @for (t of availableTypes(); track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="field type">
+        <span>Highlight matchup</span>
+        <select [value]="highlightType() ?? ''" (change)="setHighlightTypeFromValue($any($event.target).value)">
+          <option value="">Off</option>
+          @for (t of availableTypes(); track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+      </label>
+
+      <div class="range">
+        <label>Total stats range</label>
+        <div class="range-row">
+          <input type="number" [value]="minTotal()" (input)="setMinTotal($event.target)" />
+          <span>to</span>
+          <input type="number" [value]="maxTotal()" (input)="setMaxTotal($event.target)" />
+        </div>
+      </div>
+
+      <div class="paging" [class.disabled]="mode() === 'virtual'">
+        <label class="field page-size">
+          <span>Page size</span>
+          <select [value]="pageSize()" (change)="setPageSize($any($event.target).value)">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+        </label>
+
+        <button type="button" (click)="prevPage()" [disabled]="mode() === 'virtual' || pageIndex() === 0">
+          Prev
+        </button>
+        <button type="button" (click)="nextPage()" [disabled]="mode() === 'virtual'">
+          Next
+        </button>
+      </div>
+
+      <div class="bulk">
+        <button type="button" (click)="addSelectedToTeam()" [disabled]="selectedIds().length === 0">
+          Add to Team
+        </button>
+        <button type="button" (click)="clearSelection()" [disabled]="selectedIds().length === 0" aria-label="Clear selection">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="error">
+        <strong>Request failed</strong>
+        <span>{{ error() }}</span>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="loading">
+        <span class="spinner"></span>
+        <span>Loading Pokemon...</span>
+      </div>
+    }
+
+    <div class="table">
+      <div class="thead">
+        <div class="th select"></div>
+        <button class="th sprite" type="button" (click)="setSort('id')">#</button>
+        <button class="th name" type="button" (click)="setSort('name')">Name</button>
+        <div class="th types">Types</div>
+        <button class="th stat" type="button" (click)="setSort('hp')">HP</button>
+        <button class="th stat" type="button" (click)="setSort('attack')">Atk</button>
+        <button class="th stat" type="button" (click)="setSort('defense')">Def</button>
+        <button class="th stat" type="button" (click)="setSort('special-attack')">Sp.Atk</button>
+        <button class="th stat" type="button" (click)="setSort('special-defense')">Sp.Def</button>
+        <button class="th stat" type="button" (click)="setSort('speed')">Spd</button>
+        <button class="th stat" type="button" (click)="setSort('total')">Total</button>
+      </div>
+
+      <div class="tbody" [class.scroll-mode]="mode() === 'virtual'">
+        @for (p of (mode() === 'virtual' ? filteredSorted() : pagedRows()); track p.id) {
+          <div
+            class="tr"
+            [appTypeHighlight]="highlightType()"
+            [appTypeHighlightTarget]="p.types"
+            (click)="openDetails(p.id)"
+          >
+            <div class="td select" (click)="$event.stopPropagation()">
+              <input
+                type="checkbox"
+                [checked]="selectedIds().includes(p.id)"
+                (change)="toggleSelected(p.id, $any($event.target).checked)"
+                [attr.aria-label]="'Select ' + p.name"
+              />
+            </div>
+            <div class="td sprite">
+              @if (p.spriteUrl) {
+                <img [src]="p.spriteUrl" [alt]="p.name" loading="lazy" />
+              } @else {
+                <span class="sprite-fallback">#{{ p.id }}</span>
+              }
+            </div>
+            <div class="td name">{{ p.name }}</div>
+            <div class="td types">
+              @for (t of p.types; track t) {
+                <app-type-badge [type]="t" />
+              }
+            </div>
+            <div class="td stat">{{ stat(p, 'hp') }}</div>
+            <div class="td stat">{{ stat(p, 'attack') }}</div>
+            <div class="td stat">{{ stat(p, 'defense') }}</div>
+            <div class="td stat">{{ stat(p, 'special-attack') }}</div>
+            <div class="td stat">{{ stat(p, 'special-defense') }}</div>
+            <div class="td stat">{{ stat(p, 'speed') }}</div>
+            <div class="td stat">{{ total(p.stats) }}</div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (selectedPokemonId() !== null) {
+    <aside class="detail" aria-label="Pokemon details">
+      <button class="close" type="button" (click)="closeDetails()" aria-label="Close details">Close</button>
+      <router-outlet />
+    </aside>
+  }
+</section>

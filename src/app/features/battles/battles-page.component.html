@@ -1,0 +1,140 @@
+<section class="battles">
+  <header class="header">
+    <div>
+      <p class="eyebrow">Battle room</p>
+      <h1>Battles</h1>
+    </div>
+    <div class="stats">
+      <article>
+        <span>Wins</span>
+        <strong>{{ wins() }}</strong>
+      </article>
+      <article>
+        <span>Losses</span>
+        <strong>{{ losses() }}</strong>
+      </article>
+      <article>
+        <span>Win rate</span>
+        <strong>{{ winRate() }}%</strong>
+      </article>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="panel form-panel">
+      <div class="panel-title">
+        <h2>Log battle</h2>
+        <span>{{ state().trainer?.name ?? "Trainer" }}</span>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="logBattle()">
+        <label class="field">
+          <span>Opponent</span>
+          <input type="text" formControlName="opponentName" placeholder="Elite trainer" autocomplete="off" />
+        </label>
+
+        <label class="field">
+          <span>Team</span>
+          <select formControlName="teamId">
+            @for (team of state().teams; track teamId(team)) {
+              <option [ngValue]="team.id">{{ team.name }}</option>
+            }
+          </select>
+        </label>
+
+        <div class="row">
+          <label class="field">
+            <span>Result</span>
+            <select formControlName="result">
+              <option value="win">Win</option>
+              <option value="loss">Loss</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Date</span>
+            <input type="date" formControlName="date" />
+          </label>
+        </div>
+
+        <div class="row">
+          <label class="field">
+            <span>Your score</span>
+            <input type="number" min="0" max="6" formControlName="scoreTrainer" />
+          </label>
+
+          <label class="field">
+            <span>Opponent score</span>
+            <input type="number" min="0" max="6" formControlName="scoreOpponent" />
+          </label>
+        </div>
+
+        @if (statusMessage(); as message) {
+          <p class="status">{{ message }}</p>
+        }
+
+        <button class="primary" type="submit" [disabled]="state().mutating">
+          {{ state().mutating ? "Saving..." : "Save result" }}
+        </button>
+      </form>
+    </section>
+
+    <section class="panel chart-panel">
+      <div class="panel-title">
+        <h2>Monthly results</h2>
+        <span>{{ state().battles.length }} battles</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas baseChart [type]="'bar'" [data]="chartData()" [options]="chartOptions"></canvas>
+      </div>
+    </section>
+
+    <section class="panel history-panel">
+      <div class="panel-title">
+        <h2>Battle history</h2>
+        <span>{{ state().battles.length }} rows</span>
+      </div>
+
+      <div class="table">
+        <div class="thead">
+          <span>Date</span>
+          <span>Opponent</span>
+          <span>Team</span>
+          <span>Result</span>
+          <span>Score</span>
+        </div>
+        @for (battle of state().battles; track battleId(battle)) {
+          <article class="tr">
+            <span>{{ battle.date }}</span>
+            <strong>{{ battle.opponent_name }}</strong>
+            <span>{{ teamName(battle.team_id) }}</span>
+            <span class="pill" [class.win]="battle.result === 'win'" [class.loss]="battle.result === 'loss'">
+              {{ battle.result }}
+            </span>
+            <span>{{ battle.score_trainer }}-{{ battle.score_opponent }}</span>
+          </article>
+        } @empty {
+          <p class="empty">No battles loaded.</p>
+        }
+      </div>
+    </section>
+
+    <section class="panel feed-panel">
+      <div class="panel-title">
+        <h2>Live feed</h2>
+        <span>{{ latestFeed().length }} recent</span>
+      </div>
+
+      <div class="feed">
+        @for (entry of latestFeed(); track entry.id) {
+          <article [class]="severityClass(entry)">
+            <time>{{ entry.timestamp | date: "MMM d, h:mm a" }}</time>
+            <p>{{ entry.message }}</p>
+          </article>
+        } @empty {
+          <p class="empty">Waiting for battle logs.</p>
+        }
+      </div>
+    </section>
+  </div>
+</section>

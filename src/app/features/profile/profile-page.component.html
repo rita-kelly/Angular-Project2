@@ -1,0 +1,130 @@
+<section class="profile">
+  <header class="header">
+    <div>
+      <p class="eyebrow">Trainer office</p>
+      <h1>Trainer Profile</h1>
+    </div>
+
+    <label class="trainer-select">
+      <span>Active trainer</span>
+      <select [value]="currentTrainerId()" (change)="selectTrainer($event)">
+        @for (trainer of state().trainers; track trainerId(trainer)) {
+          <option [value]="trainer.id">{{ trainer.name }}</option>
+        }
+      </select>
+    </label>
+  </header>
+
+  <div class="grid">
+    <section class="panel identity">
+      <div class="avatar">
+        @if (selectedTrainer()?.avatar_url; as avatarUrl) {
+          <img [src]="avatarUrl" [alt]="selectedTrainer()?.name ?? 'Trainer avatar'" />
+        } @else {
+          <span>{{ initials() }}</span>
+        }
+      </div>
+
+      <div class="identity-text">
+        <h2>{{ selectedTrainer()?.name ?? "Loading trainer" }}</h2>
+        <p>{{ selectedTrainer()?.rank ?? "Rank" }} · {{ selectedTrainer()?.region ?? "Region" }}</p>
+      </div>
+
+      <div class="summary">
+        <article>
+          <span>Badges</span>
+          <strong>{{ selectedTrainer()?.badge_count ?? 0 }}</strong>
+        </article>
+        <article>
+          <span>Teams</span>
+          <strong>{{ state().teams.length }}</strong>
+        </article>
+        <article>
+          <span>Win rate</span>
+          <strong>{{ winRate() }}%</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel form-panel">
+      <div class="panel-title">
+        <h2>Edit profile</h2>
+        <span>{{ state().mutating ? "Saving" : "Ready" }}</span>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="saveProfile()">
+        <label class="field">
+          <span>Name</span>
+          <input type="text" formControlName="name" autocomplete="off" />
+        </label>
+        @if (showError("name")) {
+          <p class="validation">Use a trainer name between 2 and 40 characters.</p>
+        }
+
+        <div class="row">
+          <label class="field">
+            <span>Badge count</span>
+            <input type="number" min="0" max="16" formControlName="badgeCount" />
+          </label>
+
+          <label class="field">
+            <span>Region</span>
+            <input type="text" formControlName="region" autocomplete="off" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Avatar URL</span>
+          <input type="url" formControlName="avatarUrl" autocomplete="off" />
+        </label>
+
+        <label class="field">
+          <span>Rank</span>
+          <input type="text" formControlName="rank" autocomplete="off" />
+        </label>
+
+        @if (statusMessage(); as message) {
+          <p class="status">{{ message }}</p>
+        }
+
+        <button class="primary" type="submit" [disabled]="state().mutating">
+          {{ state().mutating ? "Saving..." : "Save profile" }}
+        </button>
+      </form>
+    </section>
+
+    <section class="panel teams">
+      <div class="panel-title">
+        <h2>Teams</h2>
+        <span>{{ state().teams.length }} saved</span>
+      </div>
+
+      @for (team of state().teams; track team.id) {
+        <article>
+          <strong>{{ team.name }}</strong>
+          <span>{{ team.pokemon_ids.length }} Pokémon</span>
+        </article>
+      } @empty {
+        <p class="empty">No teams loaded.</p>
+      }
+    </section>
+
+    <section class="panel record">
+      <div class="panel-title">
+        <h2>Record</h2>
+        <span>{{ state().battles.length }} battles</span>
+      </div>
+
+      <div class="record-grid">
+        <article class="win">
+          <span>Wins</span>
+          <strong>{{ battleRecord().wins }}</strong>
+        </article>
+        <article class="loss">
+          <span>Losses</span>
+          <strong>{{ battleRecord().losses }}</strong>
+        </article>
+      </div>
+    </section>
+  </div>
+</section>

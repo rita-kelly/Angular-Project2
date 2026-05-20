@@ -1,0 +1,231 @@
+.profile {
+  min-height: calc(100vh - 96px);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(135deg, rgba(234, 179, 8, 0.08), transparent 34%),
+    linear-gradient(315deg, rgba(20, 184, 166, 0.08), transparent 40%),
+    rgba(255, 255, 255, 0.02);
+}
+
+.header,
+.panel-title,
+.row,
+.summary,
+.record-grid {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.header,
+.panel-title {
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.eyebrow,
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+.eyebrow {
+  color: #fde68a;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+h2 {
+  font-size: 16px;
+}
+
+.trainer-select,
+.field {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.trainer-select {
+  min-width: 240px;
+}
+
+input,
+select,
+button {
+  font: inherit;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 38px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e7eefc;
+}
+
+select option {
+  color: #101827;
+}
+
+.grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(360px, 1.2fr);
+  gap: 14px;
+}
+
+.panel {
+  min-width: 0;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 13, 24, 0.64);
+}
+
+.identity {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.avatar {
+  width: 112px;
+  height: 112px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.avatar span {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.identity-text p,
+.panel-title span,
+.empty,
+.summary span,
+.record-grid span {
+  color: rgba(231, 238, 252, 0.72);
+}
+
+.summary article,
+.record-grid article,
+.teams article {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.summary article,
+.record-grid article {
+  min-width: 96px;
+  padding: 10px;
+  display: grid;
+  gap: 3px;
+}
+
+.summary strong,
+.record-grid strong {
+  font-size: 24px;
+}
+
+form {
+  margin-top: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 0.5fr 1fr;
+}
+
+.validation {
+  color: #fca5a5;
+  font-size: 12px;
+}
+
+.status {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(45, 212, 191, 0.26);
+  background: rgba(20, 184, 166, 0.12);
+}
+
+.primary {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(45, 212, 191, 0.42);
+  background: rgba(20, 184, 166, 0.22);
+  color: #ecfeff;
+  cursor: pointer;
+}
+
+.primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.teams,
+.record {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.teams article {
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.teams strong {
+  text-transform: capitalize;
+}
+
+.record-grid article {
+  flex: 1;
+}
+
+.record-grid .win {
+  border-color: rgba(34, 197, 94, 0.25);
+}
+
+.record-grid .loss {
+  border-color: rgba(248, 113, 113, 0.25);
+}
+
+@media (max-width: 920px) {
+  .grid,
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .trainer-select {
+    width: 100%;
+  }
+}

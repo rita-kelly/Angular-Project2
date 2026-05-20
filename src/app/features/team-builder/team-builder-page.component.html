@@ -1,0 +1,210 @@
+<section class="builder">
+  <header class="header">
+    <div>
+      <p class="eyebrow">Advanced form</p>
+      <h1>Team Builder</h1>
+      <p class="lede">Create a validated team from cached Pokédex data and save it with an optimistic GraphQL mutation.</p>
+    </div>
+    <div class="summary" aria-label="Team summary">
+      <span>{{ selectedIds().length }}/6 selected</span>
+      <strong>{{ teamTotalBaseStats() }}</strong>
+      <small>Total base stats</small>
+    </div>
+  </header>
+
+  <form class="form-grid" [formGroup]="form" (ngSubmit)="saveTeam()">
+    <section class="panel identity">
+      <label class="field">
+        <span>Team name</span>
+        <input type="text" formControlName="teamName" placeholder="Kanto counter squad" autocomplete="off" />
+      </label>
+      @if (showError(form.controls.teamName)) {
+        <p class="validation">
+          @if (form.controls.teamName.hasError("required")) {
+            Team name is required.
+          } @else if (form.controls.teamName.hasError("minlength")) {
+            Use at least 3 characters.
+          } @else if (form.controls.teamName.hasError("maxlength")) {
+            Keep the name under 30 characters.
+          } @else if (form.controls.teamName.hasError("uniqueTeamName")) {
+            A team with this name already exists.
+          }
+        </p>
+      }
+
+      <label class="toggle">
+        <input type="checkbox" formControlName="competitiveMode" />
+        <span>Competitive Mode</span>
+      </label>
+
+      @if (form.controls.competitiveMode.value) {
+        <label class="field">
+          <span>Tier</span>
+          <select formControlName="tier">
+            @for (tier of tiers; track tier) {
+              <option [value]="tier">{{ tier }}</option>
+            }
+          </select>
+        </label>
+      }
+    </section>
+
+    <section class="panel search-panel">
+      <label class="field">
+        <span>Pokémon search</span>
+        <input type="search" [formControl]="searchControl" placeholder="Search the loaded Pokédex" autocomplete="off" />
+      </label>
+
+      <div class="suggestions" aria-label="Pokemon suggestions">
+        @for (pokemon of suggestions(); track pokemon.id) {
+          <button
+            class="suggestion"
+            type="button"
+            cdkDrag
+            [cdkDragData]="pokemon"
+            (click)="addPokemon(pokemon)"
+          >
+            @if (pokemon.spriteUrl) {
+              <img [src]="pokemon.spriteUrl" [alt]="pokemon.name" loading="lazy" />
+            } @else {
+              <span class="sprite-fallback">#{{ pokemon.id }}</span>
+            }
+            <span class="name">{{ pokemon.name }}</span>
+            <span class="types">
+              @for (type of pokemon.types; track type) {
+                <app-type-badge [type]="type" />
+              }
+            </span>
+          </button>
+        } @empty {
+          <p class="empty">No matches in the currently loaded Pokédex cache.</p>
+        }
+      </div>
+    </section>
+
+    <section class="panel slots-panel">
+      <div class="panel-title">
+        <h2>Team slots</h2>
+        <span>Drop or click Pokémon</span>
+      </div>
+
+      <div class="slots" cdkDropList (cdkDropListDropped)="dropPokemon($event)">
+        @for (slot of [0, 1, 2, 3, 4, 5]; track slot) {
+          @if (selectedPokemon()[slot]; as pokemon) {
+            <article class="slot filled" cdkDrag [cdkDragData]="pokemon">
+              @if (pokemon.spriteUrl) {
+                <img [src]="pokemon.spriteUrl" [alt]="pokemon.name" loading="lazy" />
+              }
+              <div>
+                <strong>{{ pokemon.name }}</strong>
+                <span>{{ pokemonTotalBaseStats(pokemon) }} BST</span>
+              </div>
+              <button type="button" class="icon-button" aria-label="Remove Pokemon" (click)="removePokemon(pokemon.id)">
+                ×
+              </button>
+            </article>
+          } @else {
+            <article class="slot empty-slot">
+              <span>Drop Pokémon</span>
+            </article>
+          }
+        }
+      </div>
+
+      @if (typeAdvisory(); as advisory) {
+        <p class="advisory">{{ advisory }}</p>
+      }
+
+      @if (saveMessage(); as message) {
+        <p class="save-message">{{ message }}</p>
+      }
+    </section>
+
+    <section class="panel member-panel" formArrayName="members">
+      <div class="panel-title">
+        <h2>Member details</h2>
+        <span>Nicknames, items, and EVs</span>
+      </div>
+
+      @for (member of members().controls; track member.get("pokemonId")?.value; let i = $index) {
+        @if (selectedPokemon()[i]; as pokemon) {
+          <fieldset class="member" [formGroupName]="i">
+            <legend>{{ pokemon.name }}</legend>
+
+            <label class="field">
+              <span>Nickname</span>
+              <input type="text" formControlName="nickname" placeholder="Optional" />
+            </label>
+            @if (showError(member.get("nickname"))) {
+              <p class="validation">Nicknames must be 20 characters or less.</p>
+            }
+
+            <label class="field">
+              <span>Held item</span>
+              <select formControlName="heldItem">
+                @for (item of heldItems; track item) {
+                  <option [value]="item">{{ item }}</option>
+                }
+              </select>
+            </label>
+
+            @if (form.controls.competitiveMode.value) {
+              <div class="ev-grid" formGroupName="evs">
+                <label class="field">
+                  <span>HP</span>
+                  <input type="number" min="0" max="252" formControlName="hp" />
+                </label>
+                <label class="field">
+                  <span>Atk</span>
+                  <input type="number" min="0" max="252" formControlName="attack" />
+                </label>
+                <label class="field">
+                  <span>Def</span>
+                  <input type="number" min="0" max="252" formControlName="defense" />
+                </label>
+                <label class="field">
+                  <span>Sp.Atk</span>
+                  <input type="number" min="0" max="252" formControlName="specialAttack" />
+                </label>
+                <label class="field">
+                  <span>Sp.Def</span>
+                  <input type="number" min="0" max="252" formControlName="specialDefense" />
+                </label>
+                <label class="field">
+                  <span>Speed</span>
+                  <input type="number" min="0" max="252" formControlName="speed" />
+                </label>
+              </div>
+              <p class="ev-total" [class.invalid]="evGroup(member).hasError('evBudget')">
+                EV total: {{ evTotal(member) }}/510
+              </p>
+            }
+          </fieldset>
+        }
+      } @empty {
+        <p class="empty">Select at least one Pokémon to configure member details.</p>
+      }
+    </section>
+
+    <section class="panel existing">
+      <div class="panel-title">
+        <h2>Existing teams</h2>
+        <span>{{ trainerState().teams.length }} saved</span>
+      </div>
+      @for (team of trainerState().teams; track team.id) {
+        <article>
+          <strong>{{ team.name }}</strong>
+          <span>{{ team.pokemon_ids.length }} Pokémon</span>
+        </article>
+      } @empty {
+        <p class="empty">No teams loaded yet.</p>
+      }
+    </section>
+
+    <footer class="actions">
+      <button type="submit" class="primary" [disabled]="trainerState().mutating">
+        {{ trainerState().mutating ? "Saving..." : "Save team" }}
+      </button>
+    </footer>
+  </form>
+</section>

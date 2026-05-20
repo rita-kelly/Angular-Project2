@@ -1,0 +1,39 @@
+<div class="layout" [class.sidebar-collapsed]="!sidebarOpen()">
+  <aside class="sidenav">
+    <div class="brand">
+      <span class="brand-mark">PK</span>
+      <span class="brand-name">Trainer Dashboard</span>
+    </div>
+
+    <nav class="nav" aria-label="Primary">
+      @for (item of navItems(); track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [attr.aria-label]="item.label"
+        >
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+  </aside>
+
+  <section class="content">
+    <header class="toolbar">
+      <button class="icon-button" type="button" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <span class="toolbar-title">Pokedex Trainer Dashboard</span>
+      <a class="profile-link" routerLink="/profile">Profile</a>
+    </header>
+
+    <main class="main">
+      <router-outlet />
+    </main>
+  </section>
+</div>
+

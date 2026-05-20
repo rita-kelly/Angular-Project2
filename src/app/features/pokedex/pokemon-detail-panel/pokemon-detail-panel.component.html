@@ -1,0 +1,103 @@
+@if (details(); as d) {
+  <div class="panel">
+    <div class="panel-header">
+      <div class="header-left">
+        <div class="sprite">
+          @if (d.officialArtworkUrl ?? d.spriteUrl) {
+            <img [src]="d.officialArtworkUrl ?? d.spriteUrl" [alt]="d.name" />
+          } @else {
+            <div class="sprite-fallback"></div>
+          }
+        </div>
+        <div class="meta">
+          <div class="name">{{ d.name }}</div>
+          <div class="sub">
+            <span>#{{ d.id }}</span>
+            <span>·</span>
+            <span>Total {{ total() }}</span>
+          </div>
+          <div class="types">
+            @for (t of d.types; track t) {
+              <app-type-badge [type]="t" />
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <mat-tab-group class="tabs">
+      <mat-tab label="Overview">
+        <div class="section">
+          <mat-card class="card">
+            <div class="card-title">Stats</div>
+            <div class="chart">
+              <canvas baseChart [type]="radarType" [data]="radarData()" [options]="radarOptions()"></canvas>
+            </div>
+          </mat-card>
+
+          <mat-card class="card">
+            <div class="card-title">Video</div>
+            <div class="video">
+              <iframe
+                [src]="safeVideoUrl()"
+                title="Pokemon video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+              <button mat-icon-button class="overlay" type="button" (click)="toggleVideo()">
+                <mat-icon>{{ videoOpen() ? "pause" : "play_arrow" }}</mat-icon>
+              </button>
+            </div>
+          </mat-card>
+
+          <mat-card class="card">
+            <div class="card-title">Cry</div>
+            <div class="audio">
+              @if (cryUrl(); as url) {
+                <audio controls [src]="url"></audio>
+              }
+            </div>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Moves">
+        <div class="section">
+          <mat-card class="card">
+            <div class="card-title">Moves (Top 50)</div>
+            <div class="list">
+              @for (m of d.moves; track m.name) {
+                <div class="pill">{{ m.name }}</div>
+              }
+            </div>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Evolution">
+        <div class="section">
+          <mat-card class="card">
+            <div class="card-title">Evolution Chain</div>
+            <div class="evo">
+              @for (e of d.evolutionChain; track e.id) {
+                <div class="evo-item">
+                  <span class="evo-id">#{{ e.id }}</span>
+                  <span class="evo-name">{{ e.name }}</span>
+                </div>
+              }
+            </div>
+          </mat-card>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+} @else {
+  <div class="empty">
+    @if (loading()) {
+      <mat-progress-spinner mode="indeterminate" diameter="28" />
+    } @else {
+      <div class="hint">Select a Pokémon to view details.</div>
+    }
+  </div>
+}
+

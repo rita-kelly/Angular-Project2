@@ -1,0 +1,591 @@
+Pokedex Trainer Dashboard - Client Requirement Q&A
+==================================================
+
+Purpose
+-------
+This file translates the client description into evaluator-style questions and
+answers. It is meant to help a reviewer quickly understand:
+
+1. What the client wanted.
+2. Where the app implements each requirement.
+3. Why certain technical choices were made.
+4. Which items are complete, partial, or intentionally handled differently.
+
+
+Client Intent Summary
+---------------------
+Q: Did the client ask for only a Pokemon list?
+A: No. The client asked for a single-page Angular 19 trainer dashboard where a
+   Pokemon trainer can browse Pokemon, build teams, track battles, and manage
+   a trainer profile using GraphQL.
+
+Q: What is the real target of the assessment?
+A: The target is to demonstrate Angular 19, GraphQL, RxJS state management,
+   Signals, charts, advanced forms, table UX, video/audio embedding, testing,
+   code comments, and at least two advanced bonus tasks.
+
+
+1. GraphQL Integration
+----------------------
+Q: Which public GraphQL API is used?
+A: The public Pokemon API endpoint is:
+   https://beta.pokeapi.co/graphql/v1beta
+
+   Main files:
+   - src/app/graphql/graphql-endpoints.ts
+   - src/app/graphql/apollo.providers.ts
+   - src/app/api/pokemon-api.service.ts
+
+Q: Which local GraphQL API is used?
+A: The local mock API is json-graphql-server using db.js.
+
+   Current repo default:
+   - http://localhost:4100/graphql
+
+   Script:
+   - npm run local:graphql
+
+   Note: The client brief says port 4000. This repo uses 4100 by default
+   because port 4000 was already occupied during development. An alternate
+   script exists:
+   - npm run local:graphql:4000
+
+Q: Where is the paginated Pokemon list query implemented?
+A: src/app/api/pokemon-api.service.ts
+   - getPokemonPage(limit, offset)
+   - Uses GraphQL variables.
+   - Uses retry with delay.
+
+Q: Does the paginated list fetch sprites?
+A: Partially. The table model supports spriteUrl and the template renders an
+   image if spriteUrl exists. For performance, list rows currently avoid loading
+   remote sprite images on first paint and show a stable #id fallback. Full
+   artwork is loaded in the Pokemon detail query.
+
+   Relevant files:
+   - src/app/api/pokemon-api.service.ts
+   - src/app/features/pokedex/pokedex-page.component.html
+   - src/app/features/pokedex/pokemon-detail-panel/pokemon-detail-panel.component.html
+
+Q: Where is the single Pokemon detail query implemented?
+A: src/app/api/pokemon-api.service.ts
+   - getPokemonDetails(id)
+   - Fetches stats, types, abilities, moves, sprites/artwork, and evolution
+     chain data.
+
+Q: Where are Pokemon type matchups fetched?
+A: src/app/api/pokemon-api.service.ts
+   - getTypeEfficacies()
+
+   src/app/state/pokemon.store.ts
+   - loadTypeEfficacies()
+
+   src/app/state/pokemon.selectors.ts
+   - typeEffectivenessMap$()
+
+Q: Is type effectiveness used in the UI?
+A: Yes, via a bonus directive:
+   - src/app/shared/type-highlight.directive.ts
+   - src/app/features/pokedex/pokedex-page.component.html
+
+   Note: The directive uses a local type-effectiveness map for immediate row
+   highlighting. The GraphQL type-efficacy fetch and shareReplay selector are
+   also present for API-backed matchup data.
+
+Q: Where are local trainer/team/battle/battle-log queries implemented?
+A: src/app/api/trainer-api.service.ts
+   - getTrainers()
+   - getTrainer(id)
+   - getTeams(trainerId)
+   - getBattles(trainerId)
+   - getBattleLogs()
+
+Q: Where are local mutations implemented?
+A: src/app/api/trainer-api.service.ts
+   - createTeam(data)
+   - updateTeam(id, data)
+   - deleteTeam(id)
+   - updateTrainer(id, data)
+   - logBattle(data)
+
+Q: Are create/edit/delete team mutations all supported?
+A: The API service and TrainerStore support create, update, and delete.
+
+   UI status:
+   - Create team is exposed in Team Builder.
+   - Update/delete team are implemented at API/store level but are not exposed
+     as visible edit/delete buttons in the current UI.
+
+   If the evaluator requires visible edit/delete controls, this is a follow-up
+   UI task.
+
+Q: Where is the battle result mutation exposed?
+A: Route:
+   - /battles
+
+   Files:
+   - src/app/features/battles/battles-page.component.ts
+   - src/app/state/trainer.store.ts
+   - src/app/api/trainer-api.service.ts
+
+Q: Where is the trainer profile mutation exposed?
+A: Route:
+   - /profile
+
+   Files:
+   - src/app/features/profile/profile-page.component.ts
+   - src/app/state/trainer.store.ts
+   - src/app/api/trainer-api.service.ts
+
+Q: Why is polling used instead of true WebSocket GraphQL subscriptions?
+A: The local mock server is json-graphql-server. It exposes HTTP GraphQL
+   queries and mutations but does not provide a WebSocket subscription
+   transport. Because of that, the app simulates a live subscription by polling
+   battle logs every 5000ms with RxJS interval(5000) + switchMap(...), then
+   emitting only new entries into the live feed.
+
+   This is clearly commented in:
+   - src/app/state/trainer.store.ts
+   - connectLiveBattleLogFeed()
+
+Q: Where is interval(5000) + switchMap implemented?
+A: src/app/state/trainer.store.ts
+   - connectLiveBattleLogFeed(pollMs = 5000)
+
+Q: Why is the db.js collection named battleLogs instead of battle_log?
+A: json-graphql-server had schema/resolver issues with the snake_case
+   collection name. The repo uses battleLogs to keep the generated GraphQL
+   schema valid. The comment is in db.js.
+
+
+2. RxJS State Management
+------------------------
+Q: Did the app use NgRx, Akita, or NgXS?
+A: No. It uses custom stores built with BehaviorSubject.
+
+Q: Where are the custom stores?
+A:
+   - src/app/state/pokemon.store.ts
+   - src/app/state/trainer.store.ts
+
+Q: Where are selectors?
+A:
+   - src/app/state/pokemon.selectors.ts
+   - src/app/state/trainer.selectors.ts
+
+Q: Is BehaviorSubject the core state holder?
+A: Yes.
+
+   Files:
+   - PokemonStore: private stateSubject = new BehaviorSubject(...)
+   - TrainerStore: private stateSubject = new BehaviorSubject(...)
+
+Q: Are selectors derived Observable streams?
+A: Yes.
+
+   Examples:
+   - pokemonSearchResults$()
+   - pokemonFilterByType$()
+   - typeEffectivenessMap$()
+   - winRate$()
+   - battleResultsPerMonth$()
+   - teamStats$()
+
+Q: Is Pokemon search debounced?
+A: Yes for the Pokedex selector:
+   - src/app/state/pokemon.selectors.ts
+   - debounceTime(300) -> distinctUntilChanged() -> switchMap(...)
+
+   Note: Team Builder search currently filters cached Pokemon through Signals
+   and does not re-query the public API per keystroke. If strict typeahead API
+   querying is required, that is a possible follow-up.
+
+Q: Is shareReplay(1) used?
+A: Yes.
+
+   Files:
+   - src/app/state/pokemon.selectors.ts
+   - src/app/state/trainer.selectors.ts
+
+Q: Is retry(3) with delay used for PokeAPI calls?
+A: Yes.
+
+   File:
+   - src/app/api/pokemon-api.service.ts
+
+Q: Are subscriptions cleaned up?
+A: Yes. Components use DestroyRef and takeUntilDestroyed().
+
+   Examples:
+   - src/app/features/pokedex/pokedex-page.component.ts
+   - src/app/features/team-builder/team-builder-page.component.ts
+   - src/app/features/battles/battles-page.component.ts
+   - src/app/features/profile/profile-page.component.ts
+   - src/app/features/pokedex/pokemon-detail-panel/pokemon-detail-panel.component.ts
+
+Q: Is optimistic update with rollback implemented?
+A: Yes for team creation.
+
+   File:
+   - src/app/state/trainer.store.ts
+   - createTeamOptimistic()
+
+
+3. Angular Signals
+------------------
+Q: Are Angular Signals used?
+A: Yes.
+
+Q: Where are signal() values used?
+A:
+   - App sidebar state: src/app/app.component.ts
+   - Pokedex selected Pokemon/table state: src/app/features/pokedex/pokedex-page.component.ts
+   - Team Builder selected ids/status: src/app/features/team-builder/team-builder-page.component.ts
+   - Profile current trainer/status: src/app/features/profile/profile-page.component.ts
+   - Detail panel active video state: src/app/features/pokedex/pokemon-detail-panel/pokemon-detail-panel.component.ts
+
+Q: Where are computed() values used?
+A:
+   - App nav items.
+   - Pokedex filtered/sorted/paged rows.
+   - Team total base stats.
+   - Team type advisory.
+   - Battle win/loss/win-rate/chart data.
+   - Profile win-rate and battle record.
+   - Pokemon detail chart/audio/video computed values.
+
+Q: Where are effect() calls used?
+A:
+   - Persist team draft: src/app/shared/team-draft.service.ts
+   - Persist selected trainer: src/app/features/profile/profile-page.component.ts
+   - Sync route-selected Pokemon: src/app/features/pokedex/pokedex-page.component.ts
+   - Log Pokemon view analytics: src/app/features/pokedex/pokemon-detail-panel/pokemon-detail-panel.component.ts
+
+Q: Is toSignal() used to bridge Observable stores into templates?
+A: Yes, in route components and the Pokemon detail panel.
+
+Q: Are legacy @Input/@Output decorators avoided?
+A: Yes. Existing component communication uses modern input() where needed.
+   No legacy @Input/@Output decorators are used.
+
+Q: Are components standalone and OnPush?
+A: Yes for the Angular components in src/app.
+
+Q: Are services/components using inject()?
+A: Yes. Dependencies are obtained through inject().
+
+
+4. Charts
+---------
+Q: Which chart library is used?
+A: Chart.js through ng2-charts.
+
+Q: Is the Pokemon radar chart implemented?
+A: Yes.
+
+   File:
+   - src/app/features/pokedex/pokemon-detail-panel/pokemon-detail-panel.component.ts
+
+Q: Is the monthly battle bar chart implemented?
+A: Yes.
+
+   File:
+   - src/app/features/battles/battles-page.component.ts
+
+Q: Is a team type distribution pie/doughnut chart implemented?
+A: Not currently as a visible chart. Team type coverage is represented through
+   computed advisory text and type distribution awareness in the Team Builder,
+   but a dedicated pie/doughnut chart is a remaining follow-up if strict
+   completion of this chart requirement is required.
+
+Q: Do charts animate reactively?
+A: Yes. Chart.js animation settings are present and chart data is driven by
+   computed/store state.
+
+
+5. Advanced Team Builder Form
+-----------------------------
+Q: Where is the Team Builder form?
+A:
+   - src/app/features/team-builder/team-builder-page.component.ts
+   - src/app/features/team-builder/team-builder-page.component.html
+
+Q: Is team name required with 3-30 character validation?
+A: Yes.
+
+Q: Is unique team-name async validation implemented?
+A: Yes.
+
+   Files:
+   - src/app/features/team-builder/team-builder.validators.ts
+   - src/app/features/team-builder/team-builder.validators.spec.ts
+
+Q: Can users select up to 6 Pokemon?
+A: Yes. Selection is deduped and capped at 6.
+
+Q: Are selected Pokemon removable?
+A: Yes. Team slot cards include a remove button.
+
+Q: Is Dynamic FormArray used?
+A: Yes. Each selected Pokemon gets a member sub-form.
+
+Q: Are nickname and held item fields present?
+A: Yes.
+
+Q: Is Competitive Mode conditional UI present?
+A: Yes. It shows tier and EV spread fields.
+
+Q: Is EV total validation implemented?
+A: Yes. EV total above 510 is flagged.
+
+Q: Is type weakness warning implemented?
+A: Yes. Team Builder shows a non-blocking type advisory banner.
+
+Q: Are inline validation errors shown after dirty/touched states?
+A: Yes for the main visible validations.
+
+
+6. Pokedex Data Table
+---------------------
+Q: Does the table include required columns?
+A: Yes for:
+   - Sprite/fallback column.
+   - Name.
+   - Types.
+   - HP.
+   - Attack.
+   - Defense.
+   - Special Attack.
+   - Special Defense.
+   - Speed.
+   - Total.
+
+Q: Are type badges colored?
+A: Yes.
+
+   Files:
+   - src/app/shared/type-badge/type-badge.component.ts
+   - src/app/shared/type-colors.ts
+
+Q: Is sorting implemented?
+A: Yes, by stat columns and name/id/total.
+
+Q: Is pagination implemented?
+A: Yes, with 10/25/50 page sizes.
+
+Q: Are filters implemented?
+A: Yes.
+   - Text search.
+   - Type dropdown.
+   - Total stat min/max range inputs.
+
+   Note: The client asked for a slider range filter. This app uses numeric
+   range inputs rather than a slider widget.
+
+Q: Does row click open a detail side panel?
+A: Yes.
+
+Q: Is multi-row select with Add to Team implemented?
+A: Yes.
+
+
+7. Video and Audio Player
+-------------------------
+Q: Is a YouTube iframe embedded with DomSanitizer?
+A: Yes.
+
+   File:
+   - src/app/features/pokedex/pokemon-detail-panel/pokemon-detail-panel.component.ts
+
+Q: Are custom play/pause overlay controls present?
+A: Yes. The overlay toggles the iframe URL autoplay state.
+
+Q: Is there a fallback video?
+A: Yes. If a Pokemon id is not mapped, the app uses a generic fallback YouTube
+   URL. The original brief also allowed showing a placeholder; this
+   implementation chooses the generic fallback option.
+
+Q: Is Pokemon cry audio present?
+A: Yes. It uses:
+   https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/{id}.ogg
+
+   Note: It uses native audio controls, not a custom waveform visualizer.
+
+
+8. Code Comments / JSDoc
+------------------------
+Q: Did the client ask for JSDoc comments on methods?
+A: Yes.
+
+Q: Are methods documented?
+A: Implemented methods in services, stores, components, validators, directives,
+   and utilities include JSDoc-style comments. This was treated as a code
+   quality requirement across the app.
+
+Q: Where is the required polling explanation comment?
+A:
+   - src/app/state/trainer.store.ts
+   - connectLiveBattleLogFeed()
+
+
+9. Bonus Tasks
+--------------
+Q: Which bonus tasks were attempted?
+A:
+   1. Bonus 2: Drag-and-Drop Team Builder
+      - Implemented with @angular/cdk/drag-drop.
+      - File: src/app/features/team-builder/team-builder-page.component.ts
+
+   2. Bonus 3: Type Effectiveness Matrix Directive
+      - Implemented as appTypeHighlight.
+      - File: src/app/shared/type-highlight.directive.ts
+
+   3. Bonus 5: Micro-Interaction Animations
+      - Implemented as loading spinner, hover states, highlighted rows,
+        animated Chart.js updates, validation/status banners, and CDK drag
+        previews.
+
+Q: Was virtual scrolling implemented?
+A: Not as @angular/cdk virtual scroll. The Pokedex has pagination and a scroll
+   mode, but not a full CDK virtual scroll implementation.
+
+Q: Was a Web Worker implemented?
+A: No.
+
+Q: Was offline IndexedDB support implemented?
+A: No.
+
+
+10. Evaluation Criteria Mapping
+-------------------------------
+Q: How does this app address GraphQL Integration?
+A: It uses named Apollo clients for public and local GraphQL, variables,
+   queries, mutations, retry/error handling, loading flags, and polling-based
+   subscription simulation.
+
+Q: How does this app address RxJS State Management?
+A: It uses BehaviorSubject stores, selectors, debounce/search streams,
+   shareReplay, optimistic update rollback, retry, and cleanup.
+
+Q: How does this app address Signals?
+A: It uses signal, computed, effect, input, inject, and toSignal throughout
+   standalone OnPush components.
+
+Q: How does this app address UI Components?
+A: It includes table UX, chart UX, advanced form UX, detail drawer, video/audio,
+   validation feedback, and dashboard routes.
+
+Q: How does this app address Code Quality?
+A: It uses a structured folder layout, services/stores/selectors separation,
+   standalone components, JSDoc comments, unit tests, and conventional commits.
+
+Q: How does this app address Bonus Tasks?
+A: It includes CDK drag/drop, type highlight directive, and micro-interactions.
+
+
+11. Deliverables
+----------------
+Q: Is there a GitHub repository?
+A: Yes.
+   https://github.com/Technova-K02/pokedex-angular.git
+
+Q: Is there a README?
+A: Yes. README.md includes setup, architecture, screenshots, bonus notes,
+   troubleshooting, and verification notes.
+
+Q: Are there screenshots?
+A: Yes.
+   - docs/screenshots/pokedex.png
+   - docs/screenshots/team-builder.png
+
+Q: Are there at least 5 unit tests?
+A: Yes. The current suite has 9 passing specs.
+
+Q: What do the tests cover?
+A:
+   - Store method.
+   - Selector.
+   - Component signal.
+   - Form validators.
+   - Utility functions.
+
+Q: Does the app build?
+A: Yes. Verified with:
+   npm run build:prod
+
+Q: Does the app run in low-resource mode?
+A: Yes. Recommended:
+   npm run local:graphql
+   npm run build:prod
+   npm run serve:dist
+
+Q: Was end-to-end browser QA performed?
+A: Yes. A headless Chromium acceptance pass checked 26 items and passed 26/26.
+
+
+12. Known Partial Items / Follow-Up Questions
+---------------------------------------------
+These are the items to know before a strict final client review.
+
+Q: Is team edit/delete visible in the UI?
+A: Not currently. API and store methods exist, but visible edit/delete controls
+   are not exposed in the Team Builder/Profile UI.
+
+Q: Is a pie/doughnut team type distribution chart visible?
+A: Not currently. This is the biggest remaining chart-specific gap.
+
+Q: Are list sprites loaded in the Pokedex table?
+A: The table supports sprite images, but the current list data uses a fallback
+   id badge for performance. Detail artwork is loaded in the side panel.
+
+Q: Is the Team Builder autocomplete re-querying the public API per keystroke?
+A: Not currently. It filters cached Pokemon data. Pokedex search uses the
+   required debounceTime/distinctUntilChanged/switchMap selector.
+
+Q: Is the total base-stat filter a slider?
+A: No. It is implemented as min/max numeric inputs.
+
+Q: Is true GraphQL WebSocket subscription implemented?
+A: No. The local server does not support WebSocket subscriptions. Polling is
+   implemented and clearly commented, as requested.
+
+
+13. How To Run
+--------------
+Terminal 1:
+  npm run local:graphql
+
+Terminal 2:
+  npm run build:prod
+  npm run serve:dist
+
+Open:
+  http://localhost:4200/pokedex
+
+
+14. How To Verify
+-----------------
+Build:
+  npm run build:prod
+
+Unit tests:
+  CHROME_BIN=/snap/bin/chromium npm test -- --watch=false --browsers=ChromeHeadless
+
+Smoke test manually:
+  1. Open /pokedex and search for "char".
+  2. Click Bulbasaur and verify detail drawer, chart, video, and cry audio.
+  3. Open /team-builder, add two Pokemon, save a unique team.
+  4. Open /battles, log a battle.
+  5. Open /profile, save the profile.
+
+
+15. Recent Important Commits
+----------------------------
+784e751 docs: expand client handoff readme
+fde4b14 fix(api): align local graphql mutations
+dd7d70f test: add coverage and assessment docs
+6599925 feat(profile): add trainer editor
+4539814 feat(battles): add analytics and live feed
+b148ee7 feat(team-builder): add advanced team form
+8af5ed3 perf: render pokedex from local seed data first
+
