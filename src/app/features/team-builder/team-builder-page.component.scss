@@ -224,6 +224,8 @@ select option {
 
 .slot {
   padding: 10px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .slot div {
