@@ -118,6 +118,9 @@
       @if (saveMessage(); as message) {
         <p class="save-message">{{ message }}</p>
       }
+      @if (trainerState().error; as error) {
+        <p class="error-message">{{ error }}</p>
+      }
     </section>
 
     <section class="panel member-panel" formArrayName="members">

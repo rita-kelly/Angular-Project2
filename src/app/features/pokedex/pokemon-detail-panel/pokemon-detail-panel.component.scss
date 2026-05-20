@@ -172,3 +172,13 @@
   opacity: 0.8;
 }
 
+// Make tab text white for better visibility
+.tabs {
+  .mat-mdc-tab .mdc-tab__text-label {
+    color: white !important;
+  }
+
+  .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+    color: white !important;
+  }
+}

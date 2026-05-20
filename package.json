@@ -8,8 +8,8 @@
     "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "local:graphql": "json-graphql-server db.js --port 4100",
-    "local:graphql:4000": "json-graphql-server db.js --port 4000",
+    "local:graphql": "json-graphql-server db.js --port 4000",
+    "local:graphql:4100": "json-graphql-server db.js --port 4100",
     "dev": "ng serve",
     "serve:dist": "sirv dist/pokedex-trainer-dashboard/browser --single --port 4200"
   },

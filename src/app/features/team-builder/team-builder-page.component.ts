@@ -207,7 +207,15 @@ export class TeamBuilderPageComponent {
         if (team) {
           this.saveMessage.set(`Saved ${team.name}.`);
           this.draft.clear();
+          // Reset form for new team
+          this.form.controls.teamName.setValue('');
+          this.form.controls.competitiveMode.setValue(false);
+          this.form.controls.tier.setValue('OU');
+          this.members().clear();
+          this.setSelectedIds([]);
+          this.searchControl.setValue('');
         }
+        // Error is already displayed via trainerState().error in template
       });
   }
 

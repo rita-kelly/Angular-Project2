@@ -272,6 +272,15 @@ select option {
   color: #dcfce7;
 }
 
+.error-message {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(248, 113, 113, 0.24);
+  background: rgba(248, 113, 113, 0.09);
+  color: #fee2e2;
+}
+
 .member {
   padding: 12px;
   display: grid;
