@@ -4,36 +4,27 @@
       <p class="eyebrow">Trainer office</p>
       <h1>Trainer Profile</h1>
     </div>
-
-    <label class="trainer-select">
-      <span>Active trainer</span>
-      <select [value]="currentTrainerId()" (change)="selectTrainer($event)">
-        @for (trainer of state().trainers; track trainerId(trainer)) {
-          <option [value]="trainer.id">{{ trainer.name }}</option>
-        }
-      </select>
-    </label>
   </header>
 
   <div class="grid">
     <section class="panel identity">
       <div class="avatar">
-        @if (avatarPreview() || selectedTrainer()?.avatar_url; as avatarUrl) {
-          <img [src]="avatarUrl" [alt]="selectedTrainer()?.name ?? 'Trainer avatar'" />
+        @if (avatarPreview() || currentTrainer()?.avatar_url; as avatarUrl) {
+          <img [src]="avatarUrl" [alt]="currentTrainer()?.name ?? 'Trainer avatar'" />
         } @else {
           <span>{{ initials() }}</span>
         }
       </div>
 
       <div class="identity-text">
-        <h2>{{ selectedTrainer()?.name ?? "Loading trainer" }}</h2>
-        <p>{{ selectedTrainer()?.rank ?? "Rank" }} · {{ selectedTrainer()?.region ?? "Region" }}</p>
+        <h2>{{ currentTrainer()?.name ?? "Loading trainer" }}</h2>
+        <p>{{ currentTrainer()?.rank ?? "Rank" }} · {{ currentTrainer()?.region ?? "Region" }}</p>
       </div>
 
       <div class="summary">
         <article>
           <span>Badges</span>
-          <strong>{{ selectedTrainer()?.badge_count ?? 0 }}</strong>
+          <strong>{{ currentTrainer()?.badge_count ?? 0 }}</strong>
         </article>
         <article>
           <span>Teams</span>
@@ -76,8 +67,8 @@
         <div class="avatar-upload-section">
           <div class="avatar-preview-container">
             <div class="avatar-preview">
-              @if (avatarPreview() || selectedTrainer()?.avatar_url; as avatarUrl) {
-                <img [src]="avatarUrl" [alt]="selectedTrainer()?.name ?? 'Trainer avatar'" />
+              @if (avatarPreview() || currentTrainer()?.avatar_url; as avatarUrl) {
+                <img [src]="avatarUrl" [alt]="currentTrainer()?.name ?? 'Trainer avatar'" />
               } @else {
                 <span>{{ initials() }}</span>
               }
@@ -94,11 +85,6 @@
               }
             </div>
           </div>
-          
-          <label class="field">
-            <span>Or enter Avatar URL</span>
-            <input type="url" formControlName="avatarUrl" autocomplete="off" placeholder="https://example.com/avatar.png" />
-          </label>
         </div>
 
         <label class="field">

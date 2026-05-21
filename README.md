@@ -46,7 +46,7 @@ npm install
 Start the local GraphQL mock server:
 
 ```bash
-ng serve
+npm start
 ```
 
 In another terminal, start the Angular dev server:
@@ -68,7 +68,7 @@ For slower machines, use the production build and static server instead of `ng s
 Terminal 1:
 
 ```bash
-ng serve
+npm start
 npx json-graphql-server db.js --port 4000
 ```
 
@@ -224,7 +224,7 @@ npm run local:graphql
 git clone https://github.com/rita-kelly/Angular-Project2
 cd pokedex-angular
 npm install
-ng serve
+npm start
 ```
 
 In a second terminal:

@@ -1,14 +1,11 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from "@angular/core";
-import { takeUntilDestroyed, toObservable, toSignal } from "@angular/core/rxjs-interop";
+import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
-import { distinctUntilChanged, switchMap } from "rxjs";
 import { Trainer } from "../../api/models";
 import { TrainerStore } from "../../state/trainer.store";
 
-const SELECTED_TRAINER_KEY = "pokedex_selected_trainer_id";
-
 /**
- * Trainer profile route with trainer selection, profile editing, and persisted active trainer.
+ * Trainer profile route with profile editing for the current trainer.
  */
 @Component({
   selector: "app-profile-page",
@@ -25,7 +22,6 @@ export class ProfilePageComponent {
   public readonly state = toSignal(this.trainerStore.state$, {
     initialValue: this.trainerStore.getSnapshot(),
   });
-  public readonly currentTrainerId = signal<number>(this.readSelectedTrainerId());
   public readonly statusMessage = signal<string | null>(null);
 
   public readonly form = new FormGroup({
@@ -50,7 +46,7 @@ export class ProfilePageComponent {
 
   public readonly avatarPreview = signal<string | null>(null);
 
-  public readonly selectedTrainer = computed(() => this.state().trainer);
+  public readonly currentTrainer = computed(() => this.state().trainer);
   public readonly battleRecord = computed(() => {
     const wins = this.state().battles.filter((battle) => battle.result === "win").length;
     const losses = this.state().battles.filter((battle) => battle.result === "loss").length;
@@ -63,43 +59,17 @@ export class ProfilePageComponent {
   });
 
   /**
-   * Loads trainer choices, watches selected trainer changes, and persists the choice.
+   * Loads trainer profile for the current trainer (ID 1).
    */
   public constructor() {
-    this.trainerStore.loadTrainers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-
-    toObservable(this.currentTrainerId)
-      .pipe(
-        distinctUntilChanged(),
-        switchMap((trainerId) => this.trainerStore.loadTrainerDashboard(trainerId)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    this.trainerStore.loadTrainerDashboard(1).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
 
     effect(() => {
-      localStorage.setItem(SELECTED_TRAINER_KEY, String(this.currentTrainerId()));
-      this.trainerStore.setCurrentTrainerId(this.currentTrainerId());
-    });
-
-    effect(() => {
-      const trainer = this.selectedTrainer();
+      const trainer = this.currentTrainer();
       if (trainer) {
         this.patchForm(trainer);
       }
     });
-  }
-
-  /**
-   * Updates the selected trainer id from a native select change.
-   *
-   * @param event - Select change event
-   */
-  public selectTrainer(event: Event): void {
-    const trainerId = Number((event.target as HTMLSelectElement).value);
-    if (Number.isFinite(trainerId)) {
-      this.currentTrainerId.set(trainerId);
-      this.statusMessage.set(null);
-    }
   }
 
   /**
@@ -114,7 +84,7 @@ export class ProfilePageComponent {
       return;
     }
 
-    const trainer = this.selectedTrainer();
+    const trainer = this.currentTrainer();
     if (!trainer) {
       this.statusMessage.set("No trainer is loaded.");
       return;
@@ -156,7 +126,7 @@ export class ProfilePageComponent {
    * @returns Two-letter initials
    */
   public initials(): string {
-    const trainer = this.selectedTrainer();
+    const trainer = this.currentTrainer();
     if (!trainer) {
       return "TR";
     }
@@ -164,19 +134,9 @@ export class ProfilePageComponent {
     return trainer.name
       .split(" ")
       .filter(Boolean)
-      .map((part) => part[0]?.toUpperCase())
+      .map((part: string) => part[0]?.toUpperCase())
       .join("")
       .slice(0, 2);
-  }
-
-  /**
-   * Tracks trainers by id.
-   *
-   * @param trainer - Trainer row
-   * @returns Trainer id
-   */
-  public trainerId(trainer: Trainer): number {
-    return trainer.id;
   }
 
   /**
@@ -252,15 +212,5 @@ export class ProfilePageComponent {
     } else {
       this.avatarPreview.set(null);
     }
-  }
-
-  /**
-   * Reads the persisted selected trainer id from localStorage.
-   *
-   * @returns Trainer id
-   */
-  private readSelectedTrainerId(): number {
-    const parsed = Number(localStorage.getItem(SELECTED_TRAINER_KEY));
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
   }
 }
