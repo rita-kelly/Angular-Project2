@@ -1,4 +1,11 @@
 <section class="profile">
+  <!-- Toast notification -->
+  @if (toastMessage(); as toast) {
+    <div class="toast" [class.error]="toast.type === 'error'" [class.warning]="toast.type === 'warning'" [class.success]="toast.type === 'success'">
+      {{ toast.message }}
+    </div>
+  }
+
   <header class="header">
     <div>
       <p class="eyebrow">Trainer office</p>
@@ -109,10 +116,6 @@
           <span>Rank</span>
           <input type="text" formControlName="rank" autocomplete="off" />
         </label>
-
-        @if (statusMessage(); as message) {
-          <p class="status">{{ message }}</p>
-        }
 
         <button class="primary" type="submit" [disabled]="state().mutating">
           {{ state().mutating ? "Saving..." : "Save profile" }}

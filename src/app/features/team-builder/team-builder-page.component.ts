@@ -8,6 +8,7 @@ import {
 } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { CdkDragDrop, DragDropModule } from "@angular/cdk/drag-drop";
+import { DOCUMENT } from "@angular/common";
 import {
   AbstractControl,
   FormArray,
@@ -44,10 +45,14 @@ export class TeamBuilderPageComponent {
   private readonly trainerStore = inject(TrainerStore);
   private readonly draft = inject(TeamDraftService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
 
   public readonly searchControl = new FormControl<string>("", { nonNullable: true });
   public readonly selectedIds = signal<number[]>([]);
   public readonly saveMessage = signal<string | null>(null);
+  public readonly showSelectDropdown = signal<boolean>(false);
+  public readonly selectSearchTerm = signal<string>("");
+  public readonly toastMessage = signal<{message: string, type: 'error' | 'success'} | null>(null);
 
   public readonly pokemonState = toSignal(this.pokemonStore.state$, {
     initialValue: this.pokemonStore.getSnapshot(),
@@ -87,6 +92,16 @@ export class TeamBuilderPageComponent {
       .filter((p) => !selected.has(p.id))
       .filter((p) => !term || p.name.includes(term))
       .slice(0, 8);
+  });
+
+  public readonly filteredSelectOptions = computed(() => {
+    const term = this.selectSearchTerm().trim().toLowerCase();
+    const selected = new Set(this.selectedIds());
+
+    return this.allPokemon()
+      .filter((p) => !selected.has(p.id))
+      .filter((p) => !term || p.name.includes(term))
+      .slice(0, 10);
   });
 
   public readonly selectedPokemon = computed(() => {
@@ -130,6 +145,25 @@ export class TeamBuilderPageComponent {
     const trainerId = this.trainerState().currentTrainerId ?? 1;
     this.trainerStore.loadTrainerDashboard(trainerId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     this.setSelectedIds(this.draft.pokemonIds());
+
+    // Add click-outside handler for select dropdown
+    this.document.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      const selectContainers = this.document.querySelectorAll('.custom-select');
+      
+      if (this.showSelectDropdown()) {
+        let isInsideSelect = false;
+        selectContainers.forEach(container => {
+          if (container.contains(target)) {
+            isInsideSelect = true;
+          }
+        });
+        
+        if (!isInsideSelect) {
+          this.closeSelectDropdown();
+        }
+      }
+    });
   }
 
   /**
@@ -147,7 +181,10 @@ export class TeamBuilderPageComponent {
    * @param pokemon - Pokemon to add
    */
   public addPokemon(pokemon: PokemonListItem): void {
+    console.log('Adding Pokemon:', pokemon.name, 'Current IDs:', this.selectedIds());
+    
     if (this.selectedIds().includes(pokemon.id) || this.selectedIds().length >= 6) {
+      console.log('Cannot add Pokemon:', this.selectedIds().includes(pokemon.id) ? 'Already in team' : 'Team full');
       return;
     }
 
@@ -164,6 +201,88 @@ export class TeamBuilderPageComponent {
   }
 
   /**
+   * Toggles the select dropdown visibility.
+   */
+  public toggleSelectDropdown(): void {
+    this.showSelectDropdown.update(show => !show);
+  }
+
+  /**
+   * Opens the select dropdown.
+   */
+  public openSelectDropdown(): void {
+    this.showSelectDropdown.set(true);
+  }
+
+  /**
+   * Handles search input in the select dropdown.
+   *
+   * @param event - Input event
+   */
+  public onSelectSearch(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectSearchTerm.set(input.value);
+    this.showSelectDropdown.set(true);
+  }
+
+  /**
+   * Handles selecting a Pokemon from the dropdown.
+   *
+   * @param pokemon - Selected Pokemon
+   */
+  public onSelectPokemon(pokemon: PokemonListItem): void {
+    console.log('Selecting Pokemon:', pokemon.name, pokemon.id);
+    
+    // Add the Pokemon to team slots
+    this.addPokemon(pokemon);
+    
+    // Clear search term and close dropdown
+    this.selectSearchTerm.set("");
+    this.showSelectDropdown.set(false);
+    
+    // Also clear the search control for consistency
+    this.searchControl.setValue("");
+  }
+
+  /**
+   * Closes the select dropdown.
+   */
+  public closeSelectDropdown(): void {
+    this.showSelectDropdown.set(false);
+  }
+
+  /**
+   * Gets a Pokemon by ID.
+   *
+   * @param id - Pokemon ID
+   * @returns Pokemon or undefined
+   */
+  public getPokemonById(id: number): PokemonListItem | undefined {
+    return this.pokemonState().pokemonById[id];
+  }
+
+  /**
+   * Formats a date string for display.
+   *
+   * @param dateString - ISO date string
+   * @returns Formatted date
+   */
+  public formatDate(dateString: string): string {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Unknown date';
+    }
+  }
+
+
+
+  /**
    * Handles a CDK drag/drop event from search suggestions into team slots.
    *
    * @param event - CDK drag/drop event with Pokemon data
@@ -178,17 +297,37 @@ export class TeamBuilderPageComponent {
   /**
    * Saves the form as a new team through the optimistic trainer store mutation.
    */
+  /**
+   * Shows a toast message.
+   * 
+   * @param message - Message to display
+   * @param type - Toast type (error or success)
+   */
+  public showToast(message: string, type: 'error' | 'success'): void {
+    this.toastMessage.set({ message, type });
+    setTimeout(() => this.toastMessage.set(null), 3500);
+  }
+
   public saveTeam(): void {
     this.saveMessage.set(null);
 
     if (this.selectedIds().length < 1 || this.selectedIds().length > 6) {
-      this.saveMessage.set("Choose between 1 and 6 Pokemon before saving.");
+      this.showToast("Choose between 1 and 6 Pokemon before saving.", "error");
       return;
     }
 
     if (this.form.invalid || this.members().invalid) {
       this.form.markAllAsTouched();
-      this.saveMessage.set("Fix the highlighted fields before saving.");
+      // Check for specific validation errors
+      if (this.form.controls.teamName.hasError('required')) {
+        this.showToast("Team name is required.", "error");
+      } else if (this.form.controls.teamName.hasError('minlength')) {
+        this.showToast("Use at least 3 characters for team name.", "error");
+      } else if (this.form.controls.teamName.hasError('maxlength')) {
+        this.showToast("Keep the team name under 30 characters.", "error");
+      } else {
+        this.showToast("Fix the highlighted fields before saving.", "error");
+      }
       return;
     }
 
@@ -205,7 +344,7 @@ export class TeamBuilderPageComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((team) => {
         if (team) {
-          this.saveMessage.set(`Saved ${team.name}.`);
+          this.showToast(`Saved ${team.name}!`, "success");
           this.draft.clear();
           // Reset form for new team
           this.form.controls.teamName.setValue('');

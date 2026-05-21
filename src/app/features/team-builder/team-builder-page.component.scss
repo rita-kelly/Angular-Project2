@@ -355,3 +355,273 @@ select option {
     grid-template-columns: 1fr;
   }
 }
+
+
+
+/* Enhanced existing teams styles */
+.teams-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  min-height: 90px;
+  transition: all 0.2s ease;
+}
+
+.team-row:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(134, 239, 172, 0.3);
+}
+
+/* 왼쪽: 팀 이름 + 날짜 + 인원수 (왼쪽 정렬) */
+.team-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.team-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e7eefc;
+  text-transform: capitalize;
+}
+
+.team-info {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* 오른쪽: 6개의 avatar 슬롯 (사각형 박스) */
+.team-members-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(134, 239, 172, 0.25);
+  background: rgba(134, 239, 172, 0.06);
+  min-width: 280px;
+}
+
+.team-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.member-avatar {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  border-radius: 6px;
+  border: 2px solid rgba(134, 239, 172, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px;
+}
+
+.member-avatar.empty-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: #1a1a2e;
+}
+
+.team-member.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.member-name {
+  font-size: 9px;
+  color: rgba(231, 238, 252, 0.85);
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* 날짜와 인원수 스타일 */
+.team-date {
+  font-size: 10px;
+  color: rgba(231, 238, 252, 0.65);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.team-members {
+  font-size: 10px;
+  color: #86efac;
+  font-weight: 600;
+  background: rgba(134, 239, 172, 0.12);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* Make existing teams section full width */
+.existing {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .team-pokemon {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* Custom select with search styles */
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.select-header {
+  position: relative;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.select-search {
+  width: 100%;
+  min-height: 38px;
+  box-sizing: border-box;
+  padding: 8px 36px 8px 10px;
+  border: none;
+  background: transparent;
+  color: #e7eefc;
+  font: inherit;
+  outline: none;
+}
+
+.select-search::placeholder {
+  color: rgba(231, 238, 252, 0.6);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(231, 238, 252, 0.7);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(10, 15, 28, 0.95);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+.select-option {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.select-option:hover {
+  background: rgba(134, 239, 172, 0.1);
+}
+
+.select-option:last-child {
+  border-bottom: none;
+}
+
+.select-option img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.select-empty {
+  padding: 16px;
+  text-align: center;
+  color: rgba(231, 238, 252, 0.6);
+  font-size: 14px;
+}
+
+/* Hide the old suggestions since we're using select now */
+.suggestions {
+  display: none;
+}
+/* Toast notification styles */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1000;
+  animation: slideIn 0.3s ease, fadeOut 0.3s ease 3s forwards;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.toast.error {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff;
+  border: 1px solid #fca5a5;
+}
+
+.toast.success {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff;
+  border: 1px solid #86efac;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

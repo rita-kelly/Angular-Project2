@@ -220,9 +220,21 @@ export class PokemonApiService {
       weight: p.weight,
       types: p.pokemon_v2_pokemontypes.map((t: any) => t.pokemon_v2_type.name),
       stats,
-      // Keep list rows image-free so first paint is not blocked by external sprite CDNs.
-      spriteUrl: null,
+      // Always provide sprite URL for avatar column
+      spriteUrl: this.generateSpriteUrl(p.id),
     };
+  }
+
+  /**
+   * Generates a sprite URL for a Pokemon by ID.
+   * Sprite source: PokeAPI Sprites GitHub Archives
+   * URL: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/
+   *
+   * @param id - Pokemon ID
+   * @returns Sprite URL
+   */
+  private generateSpriteUrl(id: number): string {
+    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
   }
 
   /**

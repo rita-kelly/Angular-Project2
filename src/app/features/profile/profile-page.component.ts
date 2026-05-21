@@ -23,6 +23,7 @@ export class ProfilePageComponent {
     initialValue: this.trainerStore.getSnapshot(),
   });
   public readonly statusMessage = signal<string | null>(null);
+  public readonly toastMessage = signal<{message: string, type: 'error' | 'success' | 'warning'} | null>(null);
 
   public readonly form = new FormGroup({
     name: new FormControl("", {
@@ -153,12 +154,12 @@ export class ProfilePageComponent {
 
     const file = input.files[0];
     if (!file.type.startsWith('image/')) {
-      this.statusMessage.set('Please select an image file.');
+      this.showToast('Please select an image file.', 'error');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      this.statusMessage.set('Image size should be less than 5MB.');
+      this.showToast('Image size should be less than 5MB.', 'error');
       return;
     }
 
@@ -168,7 +169,7 @@ export class ProfilePageComponent {
       
       // Check if data URL is too long (rough estimate for GraphQL/DB limits)
       if (dataUrl.length > 1000000) { // ~1MB character limit
-        this.statusMessage.set('Image is too large. Please select a smaller image.');
+        this.showToast('Image is too large. Please select a smaller image.', 'warning');
         return;
       }
       
@@ -181,6 +182,17 @@ export class ProfilePageComponent {
       this.brokenAvatarUrls.set(new Set());
     };
     reader.readAsDataURL(file);
+  }
+
+  /**
+   * Shows a toast message.
+   * 
+   * @param message - Message to display
+   * @param type - Toast type (error, success, or warning)
+   */
+  public showToast(message: string, type: 'error' | 'success' | 'warning'): void {
+    this.toastMessage.set({ message, type });
+    setTimeout(() => this.toastMessage.set(null), 3500);
   }
 
   /**

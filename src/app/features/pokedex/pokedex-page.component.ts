@@ -290,11 +290,13 @@ export class PokedexPageComponent {
   }
 
   /**
-   * Adds selected Pokemon ids into the Team Draft (max 6).
+   * Adds selected Pokemon ids into the Team Draft (max 6) and navigates to Team Builder.
    */
   public addSelectedToTeam(): void {
     this.teamDraft.add(this.selectedIds());
     this.clearSelection();
+    // Navigate to Team Builder page
+    this.router.navigate(["/team-builder"]);
   }
 
   /**

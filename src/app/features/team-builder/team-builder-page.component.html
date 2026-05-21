@@ -1,4 +1,11 @@
 <section class="builder">
+  <!-- Toast notification -->
+  @if (toastMessage(); as toast) {
+    <div class="toast" [class.error]="toast.type === 'error'" [class.success]="toast.type === 'success'">
+      {{ toast.message }}
+    </div>
+  }
+
   <header class="header">
     <div>
       <p class="eyebrow">Advanced form</p>
@@ -18,19 +25,7 @@
         <span>Team name</span>
         <input type="text" formControlName="teamName" placeholder="Kanto counter squad" autocomplete="off" />
       </label>
-      @if (showError(form.controls.teamName)) {
-        <p class="validation">
-          @if (form.controls.teamName.hasError("required")) {
-            Team name is required.
-          } @else if (form.controls.teamName.hasError("minlength")) {
-            Use at least 3 characters.
-          } @else if (form.controls.teamName.hasError("maxlength")) {
-            Keep the name under 30 characters.
-          } @else if (form.controls.teamName.hasError("uniqueTeamName")) {
-            A team with this name already exists.
-          }
-        </p>
-      }
+      
 
       <label class="toggle">
         <input type="checkbox" formControlName="competitiveMode" />
@@ -51,35 +46,45 @@
 
     <section class="panel search-panel">
       <label class="field">
-        <span>Pokémon search</span>
-        <input type="search" [formControl]="searchControl" placeholder="Search the loaded Pokédex" autocomplete="off" />
-      </label>
-
-      <div class="suggestions" aria-label="Pokemon suggestions">
-        @for (pokemon of suggestions(); track pokemon.id) {
-          <button
-            class="suggestion"
-            type="button"
-            cdkDrag
-            [cdkDragData]="pokemon"
-            (click)="addPokemon(pokemon)"
-          >
-            @if (pokemon.spriteUrl) {
-              <img [src]="pokemon.spriteUrl" [alt]="pokemon.name" loading="lazy" />
-            } @else {
-              <span class="sprite-fallback">#{{ pokemon.id }}</span>
-            }
-            <span class="name">{{ pokemon.name }}</span>
-            <span class="types">
-              @for (type of pokemon.types; track type) {
-                <app-type-badge [type]="type" />
+        <span>Select Pokémon</span>
+        <div class="custom-select" #selectContainer>
+          <div class="select-header">
+            <input 
+              type="text" 
+              class="select-search" 
+              placeholder="Search or select Pokémon..." 
+              [value]="selectSearchTerm()"
+              (input)="onSelectSearch($event)"
+              (click)="openSelectDropdown()"
+              autocomplete="off"
+            />
+            <span class="select-arrow" (click)="openSelectDropdown()">▼</span>
+          </div>
+          
+          @if (showSelectDropdown()) {
+            <div class="select-dropdown">
+              @for (pokemon of filteredSelectOptions(); track pokemon.id) {
+                <div 
+                  class="select-option"
+                  (mousedown)="onSelectPokemon(pokemon)"
+                >
+                  <!-- IMAGE SOURCE: PokeAPI Sprites GitHub Archives -->
+                  <!-- URL: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/ -->
+                  <img [src]="'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + pokemon.id + '.png'" [alt]="pokemon.name" loading="lazy" />
+                  <span class="name">{{ pokemon.name }}</span>
+                  <span class="types">
+                    @for (type of pokemon.types; track type) {
+                      <app-type-badge [type]="type" />
+                    }
+                  </span>
+                </div>
+              } @empty {
+                <div class="select-empty">No Pokémon found</div>
               }
-            </span>
-          </button>
-        } @empty {
-          <p class="empty">No matches in the currently loaded Pokédex cache.</p>
-        }
-      </div>
+            </div>
+          }
+        </div>
+      </label>
     </section>
 
     <section class="panel slots-panel">
@@ -92,9 +97,7 @@
         @for (slot of [0, 1, 2, 3, 4, 5]; track slot) {
           @if (selectedPokemon()[slot]; as pokemon) {
             <article class="slot filled" cdkDrag [cdkDragData]="pokemon">
-              @if (pokemon.spriteUrl) {
-                <img [src]="pokemon.spriteUrl" [alt]="pokemon.name" loading="lazy" />
-              }
+              <img [src]="'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + pokemon.id + '.png'" [alt]="pokemon.name" loading="lazy" />
               <div>
                 <strong>{{ pokemon.name }}</strong>
                 <span>{{ pokemonTotalBaseStats(pokemon) }} BST</span>
@@ -111,13 +114,6 @@
         }
       </div>
 
-      @if (typeAdvisory(); as advisory) {
-        <p class="advisory">{{ advisory }}</p>
-      }
-
-      @if (saveMessage(); as message) {
-        <p class="save-message">{{ message }}</p>
-      }
       @if (trainerState().error; as error) {
         <p class="error-message">{{ error }}</p>
       }
@@ -194,14 +190,41 @@
         <h2>Existing teams</h2>
         <span>{{ trainerState().teams.length }} saved</span>
       </div>
-      @for (team of trainerState().teams; track team.id) {
-        <article>
-          <strong>{{ team.name }}</strong>
-          <span>{{ team.pokemon_ids.length }} Pokémon</span>
-        </article>
-      } @empty {
-        <p class="empty">No teams loaded yet.</p>
-      }
+      <div class="teams-list">
+        @for (team of trainerState().teams; track team.id) {
+          <article class="team-row">
+            <!-- 왼쪽: 팀 이름 + 날짜 + 인원수 -->
+            <div class="team-left">
+              <div class="team-name">{{ team.name }}</div>
+              <div class="team-info">
+                <span class="team-date">{{ formatDate(team.created_at) }}</span>
+                <span class="team-members">{{ team.pokemon_ids.length }} members</span>
+              </div>
+            </div>
+            
+            <!-- 오른쪽: 6개의 avatar 슬롯 (무조건 6개) -->
+            <div class="team-members-box">
+              @for (i of [0,1,2,3,4,5]; track i) {
+                @if (team.pokemon_ids[i] && getPokemonById(team.pokemon_ids[i]); as pokemon) {
+                  <div class="team-member">
+                    <!-- IMAGE SOURCE: PokeAPI Sprites GitHub Archives -->
+                    <!-- URL: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/ -->
+                    <img [src]="'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + pokemon.id + '.png'" [alt]="pokemon.name" loading="lazy" class="member-avatar" />
+                    <span class="member-name">{{ pokemon.name }}</span>
+                  </div>
+                } @else {
+                  <div class="team-member empty">
+                    <div class="member-avatar empty-avatar"></div>
+                    <span class="member-name"></span>
+                  </div>
+                }
+              }
+            </div>
+          </article>
+        } @empty {
+          <p class="empty">No teams loaded yet.</p>
+        }
+      </div>
     </section>
 
     <footer class="actions">

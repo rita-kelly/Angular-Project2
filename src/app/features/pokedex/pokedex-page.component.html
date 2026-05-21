@@ -75,11 +75,11 @@
 
       <div class="bulk">
         <button type="button" (click)="addSelectedToTeam()" [disabled]="selectedIds().length === 0">
-          Add to Team
+          Create the Team
         </button>
-        <button type="button" (click)="clearSelection()" [disabled]="selectedIds().length === 0" aria-label="Clear selection">
+        <!-- <button type="button" (click)="clearSelection()" [disabled]="selectedIds().length === 0" aria-label="Clear selection">
           Clear
-        </button>
+        </button> -->
       </div>
     </div>
 
@@ -100,7 +100,8 @@
     <div class="table">
       <div class="thead">
         <div class="th select"></div>
-        <button class="th sprite" type="button" (click)="setSort('id')">#</button>
+        <button class="th sprite" type="button" (click)="setSort('id')">No</button>
+        <div class="th avatar">Avatar</div>
         <button class="th name" type="button" (click)="setSort('name')">Name</button>
         <div class="th types">Types</div>
         <button class="th stat" type="button" (click)="setSort('hp')">HP</button>
@@ -128,12 +129,10 @@
                 [attr.aria-label]="'Select ' + p.name"
               />
             </div>
-            <div class="td sprite">
-              @if (p.spriteUrl) {
-                <img [src]="p.spriteUrl" [alt]="p.name" loading="lazy" />
-              } @else {
-                <span class="sprite-fallback">#{{ p.id }}</span>
-              }
+            <div class="td sprite">{{ p.id }}</div>
+            <div class="td avatar">
+              <img [src]="'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + p.id + '.png'" 
+                   [alt]="p.name" loading="lazy" class="avatar-img" />
             </div>
             <div class="td name">{{ p.name }}</div>
             <div class="td types">

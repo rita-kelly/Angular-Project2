@@ -2,6 +2,14 @@
   <div class="panel">
     <div class="panel-header">
       <div class="header-left">
+        <!-- 
+          ============================================================================
+          IMAGE SOURCE (그림원천): 
+          - d.officialArtworkUrl: PokéAPI GraphQL (pokemon_v2_pokemonsprites) 
+            → https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/
+          - d.spriteUrl: https://pokeapi.co/media/sprites/pokemon/{id}.png
+          ============================================================================
+        -->
         <div class="sprite">
           @if (d.officialArtworkUrl ?? d.spriteUrl) {
             <img [src]="d.officialArtworkUrl ?? d.spriteUrl" [alt]="d.name" />
@@ -12,7 +20,7 @@
         <div class="meta">
           <div class="name">{{ d.name }}</div>
           <div class="sub">
-            <span>#{{ d.id }}</span>
+            <span>{{ d.id }}</span>
             <span>·</span>
             <span>Total {{ total() }}</span>
           </div>
@@ -81,7 +89,7 @@
             <div class="evo">
               @for (e of d.evolutionChain; track e.id) {
                 <div class="evo-item">
-                  <span class="evo-id">#{{ e.id }}</span>
+                  <span class="evo-id">{{ e.id }}</span>
                   <span class="evo-name">{{ e.name }}</span>
                 </div>
               }

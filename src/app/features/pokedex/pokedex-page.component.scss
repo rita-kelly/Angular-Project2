@@ -220,9 +220,9 @@ button:disabled {
 
 .thead,
 .tr {
-  min-width: 1010px;
+  min-width: 1090px;
   display: grid;
-  grid-template-columns: 44px 64px 180px 1fr repeat(7, 78px);
+  grid-template-columns: 44px 64px 64px 180px 1fr repeat(7, 78px);
   gap: 0;
   align-items: center;
 }
@@ -309,19 +309,32 @@ button.th {
   image-rendering: pixelated;
 }
 
-.sprite-fallback {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(231, 238, 252, 0.78);
-  font-size: 12px;
-  font-weight: 700;
+.td.sprite {
+  color: rgba(231, 238, 252, 0.85);
+  font-weight: 600;
+  font-size: 14px;
 }
 
 .td.stat {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+/* Avatar column styles */
+.td.avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar-img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Avatar fallback removed - sprites are now always available */
