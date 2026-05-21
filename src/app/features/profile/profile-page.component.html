@@ -9,10 +9,19 @@
   <div class="grid">
     <section class="panel identity">
       <div class="avatar">
-        @if (avatarPreview() || currentTrainer()?.avatar_url; as avatarUrl) {
-          <img [src]="avatarUrl" [alt]="currentTrainer()?.name ?? 'Trainer avatar'" />
+        @if (avatarPreview(); as previewUrl) {
+          <img [src]="previewUrl" [alt]="currentTrainer()?.name ?? 'Trainer avatar'" />
         } @else {
-          <span>{{ initials() }}</span>
+          @let avatarUrl = currentTrainer()?.avatar_url;
+          @if (shouldShowAvatar(avatarUrl)) {
+            <img 
+              [src]="avatarUrl" 
+              [alt]="currentTrainer()?.name ?? 'Trainer avatar'" 
+              (error)="onAvatarError(avatarUrl!)"
+            />
+          } @else {
+            <span>{{ initials() }}</span>
+          }
         }
       </div>
 
@@ -67,10 +76,19 @@
         <div class="avatar-upload-section">
           <div class="avatar-preview-container">
             <div class="avatar-preview">
-              @if (avatarPreview() || currentTrainer()?.avatar_url; as avatarUrl) {
-                <img [src]="avatarUrl" [alt]="currentTrainer()?.name ?? 'Trainer avatar'" />
+              @if (avatarPreview(); as previewUrl) {
+                <img [src]="previewUrl" [alt]="currentTrainer()?.name ?? 'Trainer avatar'" />
               } @else {
-                <span>{{ initials() }}</span>
+                @let avatarUrl = currentTrainer()?.avatar_url;
+                @if (shouldShowAvatar(avatarUrl)) {
+                  <img 
+                    [src]="avatarUrl" 
+                    [alt]="currentTrainer()?.name ?? 'Trainer avatar'" 
+                    (error)="onAvatarError(avatarUrl!)"
+                  />
+                } @else {
+                  <span>{{ initials() }}</span>
+                }
               }
             </div>
             <div class="avatar-upload-controls">

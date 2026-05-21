@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, signal } from "@angular/core";
 import { RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { TrainerStore } from "./state/trainer.store";
@@ -19,6 +19,7 @@ export class AppComponent {
   public readonly state = toSignal(this.trainerStore.state$, {
     initialValue: this.trainerStore.getSnapshot(),
   });
+  public readonly brokenAvatarUrls = signal<Set<string>>(new Set());
 
   public readonly navItems = computed(() => [
     { label: "Pokedex", icon: "PK", route: "/pokedex" },
@@ -43,6 +44,44 @@ export class AppComponent {
     return this.getInitialsFromName(trainer.name);
   });
 
+  /**
+   * Handles image loading errors for avatar URLs.
+   * Marks the URL as broken so it falls back to initials.
+   *
+   * @param avatarUrl - The avatar URL that failed to load
+   */
+  public onAvatarError(avatarUrl: string | null | undefined): void {
+    if (!avatarUrl) {
+      return;
+    }
+    
+    this.brokenAvatarUrls.update(broken => {
+      const updated = new Set(broken);
+      updated.add(avatarUrl);
+      return updated;
+    });
+  }
+
+  /**
+   * Checks if an avatar URL should be shown or if we should fall back to initials.
+   * Returns true if the URL should be shown (not broken and not empty).
+   *
+   * @param avatarUrl - The avatar URL to check
+   * @returns Whether to show the image
+   */
+  public shouldShowAvatar(avatarUrl: string | null | undefined): boolean {
+    if (!avatarUrl || avatarUrl.trim() === '') {
+      return false;
+    }
+    
+    // Check if this URL is marked as broken
+    if (this.brokenAvatarUrls().has(avatarUrl)) {
+      return false;
+    }
+    
+    return true;
+  }
+
   constructor() {
     // Load the default trainer (ID 1) when app starts
     // Also load the trainers list first to ensure data is available
@@ -60,6 +99,18 @@ export class AppComponent {
         },
         error: (err) => console.error('Error loading trainers:', err)
       });
+
+    // Clear broken avatar URLs when trainer changes
+    effect(() => {
+      const trainer = this.state().trainer;
+      if (trainer?.avatar_url) {
+        this.brokenAvatarUrls.update(broken => {
+          const updated = new Set(broken);
+          updated.delete(trainer.avatar_url!);
+          return updated;
+        });
+      }
+    });
   }
 
   /**

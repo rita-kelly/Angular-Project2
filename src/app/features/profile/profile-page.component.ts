@@ -45,6 +45,7 @@ export class ProfilePageComponent {
   });
 
   public readonly avatarPreview = signal<string | null>(null);
+  public readonly brokenAvatarUrls = signal<Set<string>>(new Set());
 
   public readonly currentTrainer = computed(() => this.state().trainer);
   public readonly battleRecord = computed(() => {
@@ -175,6 +176,9 @@ export class ProfilePageComponent {
       this.form.controls.avatarUrl.setValue(dataUrl);
       this.form.markAsDirty();
       this.statusMessage.set(null);
+      
+      // Clear any broken URL markers since we have a new valid image
+      this.brokenAvatarUrls.set(new Set());
     };
     reader.readAsDataURL(file);
   }
@@ -186,6 +190,44 @@ export class ProfilePageComponent {
     this.avatarPreview.set(null);
     this.form.controls.avatarUrl.setValue('');
     this.form.markAsDirty();
+  }
+
+  /**
+   * Handles image loading errors for avatar URLs.
+   * Marks the URL as broken so it falls back to initials.
+   *
+   * @param avatarUrl - The avatar URL that failed to load
+   */
+  public onAvatarError(avatarUrl: string | null | undefined): void {
+    if (!avatarUrl) {
+      return;
+    }
+    
+    this.brokenAvatarUrls.update(broken => {
+      const updated = new Set(broken);
+      updated.add(avatarUrl);
+      return updated;
+    });
+  }
+
+  /**
+   * Checks if an avatar URL should be shown or if we should fall back to initials.
+   * Returns true if the URL should be shown (not broken and not empty).
+   *
+   * @param avatarUrl - The avatar URL to check
+   * @returns Whether to show the image
+   */
+  public shouldShowAvatar(avatarUrl: string | null | undefined): boolean {
+    if (!avatarUrl || avatarUrl.trim() === '') {
+      return false;
+    }
+    
+    // Check if this URL is marked as broken
+    if (this.brokenAvatarUrls().has(avatarUrl)) {
+      return false;
+    }
+    
+    return true;
   }
 
   /**
@@ -205,6 +247,15 @@ export class ProfilePageComponent {
       { emitEvent: false },
     );
     this.form.markAsPristine();
+    
+    // Clear broken URLs for the current avatar URL when loading a new trainer
+    if (trainer.avatar_url) {
+      this.brokenAvatarUrls.update(broken => {
+        const updated = new Set(broken);
+        updated.delete(trainer.avatar_url!);
+        return updated;
+      });
+    }
     
     // Set avatar preview if avatar_url is a data URL
     if (trainer.avatar_url && trainer.avatar_url.startsWith('data:image/')) {
