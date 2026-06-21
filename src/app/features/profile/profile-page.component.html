@@ -125,7 +125,12 @@
 
         <label class="field">
           <span>Rank</span>
-          <input type="text" formControlName="rank" autocomplete="off" />
+          <select formControlName="rank">
+            <option value="">Select a rank</option>
+            @for (option of rankOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
         </label>
 
         <button class="primary" type="submit" [disabled]="state().mutating">

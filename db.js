@@ -7,6 +7,16 @@
  *   npx json-graphql-server db.js --port 4000
  */
 module.exports = {
+  ranks: [
+    { id: 1, name: "Novice", description: "Just starting out" },
+    { id: 2, name: "Rookie", description: "Learning the basics" },
+    { id: 3, name: "Ace Trainer", description: "Skilled trainer" },
+    { id: 4, name: "Gym Leader", description: "Leader of a Pokémon Gym" },
+    { id: 5, name: "Elite Four", description: "Member of the Elite Four" },
+    { id: 6, name: "Champion", description: "Regional Champion" },
+    { id: 7, name: "Master", description: "Pokémon Master" },
+    { id: 8, name: "Professor", description: "Pokémon Professor" },
+  ],
   trainers: [
     {
       id: 1,

@@ -43,12 +43,23 @@ export class ProfilePageComponent {
     avatarUrl: new FormControl("", { nonNullable: true }),
     rank: new FormControl("", {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(2), Validators.maxLength(30)],
+      validators: [Validators.required],
     }),
   });
 
   public readonly avatarPreview = signal<string | null>(null);
   public readonly brokenAvatarUrls = signal<Set<string>>(new Set());
+
+  public readonly rankOptions = [
+    { value: "Novice", label: "Novice" },
+    { value: "Rookie", label: "Rookie" },
+    { value: "Ace Trainer", label: "Ace Trainer" },
+    { value: "Gym Leader", label: "Gym Leader" },
+    { value: "Elite Four", label: "Elite Four" },
+    { value: "Champion", label: "Champion" },
+    { value: "Master", label: "Master" },
+    { value: "Professor", label: "Professor" },
+  ];
 
   public readonly currentTrainer = computed(() => this.state().trainer);
   public readonly battleRecord = computed(() => {
