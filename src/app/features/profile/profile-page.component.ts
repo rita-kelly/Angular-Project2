@@ -3,6 +3,7 @@ import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Trainer } from "../../api/models";
 import { TrainerStore } from "../../state/trainer.store";
+import { PokemonStore } from "../../state/pokemon.store";
 
 /**
  * Trainer profile route with profile editing for the current trainer.
@@ -17,6 +18,7 @@ import { TrainerStore } from "../../state/trainer.store";
 })
 export class ProfilePageComponent {
   private readonly trainerStore = inject(TrainerStore);
+  private readonly pokemonStore = inject(PokemonStore);
   private readonly destroyRef = inject(DestroyRef);
 
   public readonly state = toSignal(this.trainerStore.state$, {
@@ -58,6 +60,15 @@ export class ProfilePageComponent {
     const record = this.battleRecord();
     const total = record.wins + record.losses;
     return total ? Math.round((record.wins / total) * 100) : 0;
+  });
+
+  /**
+   * Returns teams with members (non-empty teams).
+   *
+   * @returns Array of teams with at least one member
+   */
+  public readonly teamsWithMembers = computed(() => {
+    return this.state().teams.filter(team => team.pokemon_ids.length > 0);
   });
 
   /**
@@ -240,6 +251,36 @@ export class ProfilePageComponent {
     }
     
     return true;
+  }
+
+  /**
+   * Formats a team date string for display.
+   *
+   * @param dateString - ISO date string
+   * @returns Formatted date
+   */
+  public formatTeamDate(dateString: string): string {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Unknown date';
+    }
+  }
+
+  /**
+   * Gets a Pokemon by ID.
+   *
+   * @param id - Pokemon ID
+   * @returns Pokemon or undefined
+   */
+  public getPokemonById(id: number) {
+    const pokemonState = this.pokemonStore.getSnapshot();
+    return pokemonState.pokemonById[id];
   }
 
   /**

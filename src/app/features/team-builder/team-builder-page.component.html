@@ -188,10 +188,10 @@
     <section class="panel existing">
       <div class="panel-title">
         <h2>Existing teams</h2>
-        <span>{{ trainerState().teams.length }} saved</span>
+        <span>{{ teamsWithMembers().length }} saved</span>
       </div>
       <div class="teams-list">
-        @for (team of trainerState().teams; track team.id) {
+        @for (team of teamsWithMembers(); track team.id) {
           <article class="team-row">
             <!-- 왼쪽: 팀 이름 + 날짜 + 인원수 -->
             <div class="team-left">

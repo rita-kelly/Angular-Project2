@@ -87,6 +87,11 @@ select option {
   gap: 14px;
 }
 
+.teams-panel {
+  grid-column: 1 / -1;
+  margin-top: 14px;
+}
+
 .panel {
   min-width: 0;
   padding: 14px;
@@ -311,6 +316,63 @@ select option {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+/* Record summary styles */
+.record-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.record-summary-item {
+  padding: 16px 12px;
+  display: grid;
+  gap: 6px;
+  text-align: center;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.record-summary-item.win {
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05));
+}
+
+.record-summary-item.loss {
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.15), rgba(248, 113, 113, 0.05));
+}
+
+.record-summary-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.record-summary-item.win:hover {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(34, 197, 94, 0.15));
+}
+
+.record-summary-item.loss:hover {
+  border-color: rgba(248, 113, 113, 0.5);
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.25), rgba(248, 113, 113, 0.15));
+}
+
+.record-summary-item span {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(231, 238, 252, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.record-summary-item strong {
+  font-size: 28px;
+  font-weight: 800;
+  color: #e7eefc;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 .record-grid article {
   min-width: 96px;
   padding: 10px;
@@ -526,6 +588,68 @@ input:focus, select:focus {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+/* Teams grid for simple team cards */
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.team-card {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.team-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(134, 239, 172, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.team-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.team-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e7eefc;
+  text-transform: capitalize;
+}
+
+.team-card-info {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.team-date {
+  font-size: 11px;
+  color: rgba(231, 238, 252, 0.65);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: 10px;
+}
+
+.team-members {
+  font-size: 11px;
+  color: #86efac;
+  font-weight: 600;
+  background: rgba(134, 239, 172, 0.12);
+  padding: 4px 10px;
+  border-radius: 10px;
+}
+
 @media (max-width: 920px) {
   .grid,
   .row {
@@ -534,6 +658,10 @@ input:focus, select:focus {
 
   .trainer-select {
     width: 100%;
+  }
+  
+  .teams-grid {
+    grid-template-columns: 1fr;
   }
 }
 /* Toast notification styles */

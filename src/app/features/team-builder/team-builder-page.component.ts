@@ -114,6 +114,15 @@ export class TeamBuilderPageComponent {
   );
 
   /**
+   * Computes teams that have at least one member.
+   *
+   * @returns Filtered teams with members
+   */
+  public readonly teamsWithMembers = computed(() =>
+    this.trainerState().teams.filter(team => team.pokemon_ids.length > 0),
+  );
+
+  /**
    * Computes a Pokemon's base stat total for display.
    *
    * @param pokemon - Pokemon row
@@ -312,7 +321,11 @@ export class TeamBuilderPageComponent {
     this.saveMessage.set(null);
 
     if (this.selectedIds().length < 1 || this.selectedIds().length > 6) {
-      this.showToast("Choose between 1 and 6 Pokemon before saving.", "error");
+      if (this.selectedIds().length < 1) {
+        this.showToast("Team must have members.", "error");
+      } else {
+        this.showToast("Choose between 1 and 6 Pokemon before saving.", "error");
+      }
       return;
     }
 
@@ -356,6 +369,32 @@ export class TeamBuilderPageComponent {
         }
         // Error is already displayed via trainerState().error in template
       });
+  }
+
+  /**
+   * Deletes empty teams (teams with no members).
+   */
+  public deleteEmptyTeams(): void {
+    const emptyTeams = this.trainerState().teams.filter(team => team.pokemon_ids.length === 0);
+    
+    if (emptyTeams.length === 0) {
+      this.showToast("No empty teams found.", "success");
+      return;
+    }
+
+    let deletedCount = 0;
+    emptyTeams.forEach(team => {
+      this.trainerStore.deleteTeam(team.id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(success => {
+          if (success) {
+            deletedCount++;
+            if (deletedCount === emptyTeams.length) {
+              this.showToast(`Deleted ${deletedCount} empty team(s).`, "success");
+            }
+          }
+        });
+    });
   }
 
   /**

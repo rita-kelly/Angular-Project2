@@ -39,28 +39,28 @@ module.exports = {
       id: 1,
       trainer_id: 1,
       name: "Kanto Starters",
-      pokemon_ids: [25, 6, 9, 3, 131, 143],
+      pokemon_ids: [1, 4, 7, 2, 5, 8], // Bulbasaur, Charmander, Squirtle, Ivysaur, Charmeleon, Wartortle
       created_at: "2024-01-15T10:00:00Z",
     },
     {
       id: 2,
       trainer_id: 1,
       name: "Johto Squad",
-      pokemon_ids: [157, 181, 214, 248, 197, 169],
+      pokemon_ids: [10, 13, 16, 19, 11, 14], // Caterpie, Weedle, Pidgey, Rattata, Metapod, Kakuna
       created_at: "2024-03-20T14:30:00Z",
     },
     {
       id: 3,
       trainer_id: 2,
       name: "Water Specialists",
-      pokemon_ids: [121, 130, 134, 73, 91, 99],
+      pokemon_ids: [7, 8, 9, 7, 8, 9], // Squirtle, Wartortle, Blastoise (repeated to fill 6 slots)
       created_at: "2024-02-10T09:00:00Z",
     },
     {
       id: 4,
       trainer_id: 3,
       name: "Rock Solid",
-      pokemon_ids: [76, 95, 142, 141, 139, 248],
+      pokemon_ids: [1, 2, 3, 4, 5, 6], // Bulbasaur line and Charmander line
       created_at: "2024-04-05T16:45:00Z",
     },
   ],

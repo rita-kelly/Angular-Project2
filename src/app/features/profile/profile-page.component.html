@@ -39,7 +39,7 @@
 
       <div class="summary">
         <article>
-          <span>Badges</span>
+          <span>BADGES</span>
           <strong>{{ currentTrainer()?.badge_count ?? 0 }}</strong>
         </article>
         <article>
@@ -47,9 +47,20 @@
           <strong>{{ state().teams.length }}</strong>
         </article>
         <article>
-          <span>Win rate</span>
+          <span>WIN RATE</span>
           <strong>{{ winRate() }}%</strong>
         </article>
+      </div>
+
+      <div class="record-summary">
+        <div class="record-summary-item win">
+          <span>Wins</span>
+          <strong>{{ battleRecord().wins }}</strong>
+        </div>
+        <div class="record-summary-item loss">
+          <span>Losses</span>
+          <strong>{{ battleRecord().losses }}</strong>
+        </div>
       </div>
     </section>
 
@@ -123,37 +134,26 @@
       </form>
     </section>
 
-    <section class="panel teams">
+    <section class="panel teams-panel">
       <div class="panel-title">
         <h2>Teams</h2>
-        <span>{{ state().teams.length }} saved</span>
+        <span>{{ teamsWithMembers().length }} saved</span>
       </div>
 
-      @for (team of state().teams; track team.id) {
-        <article>
-          <strong>{{ team.name }}</strong>
-          <span>{{ team.pokemon_ids.length }} Pokémon</span>
-        </article>
-      } @empty {
-        <p class="empty">No teams loaded.</p>
-      }
-    </section>
-
-    <section class="panel record">
-      <div class="panel-title">
-        <h2>Record</h2>
-        <span>{{ state().battles.length }} battles</span>
-      </div>
-
-      <div class="record-grid">
-        <article class="win">
-          <span>Wins</span>
-          <strong>{{ battleRecord().wins }}</strong>
-        </article>
-        <article class="loss">
-          <span>Losses</span>
-          <strong>{{ battleRecord().losses }}</strong>
-        </article>
+      <div class="teams-grid">
+        @for (team of teamsWithMembers(); track team.id) {
+          <article class="team-card">
+            <div class="team-card-header">
+              <div class="team-name">{{ team.name }}</div>
+            </div>
+            <div class="team-card-info">
+              <span class="team-date">{{ formatTeamDate(team.created_at) }}</span>
+              <span class="team-members">{{ team.pokemon_ids.length }} members</span>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty">No teams loaded yet.</p>
+        }
       </div>
     </section>
   </div>
