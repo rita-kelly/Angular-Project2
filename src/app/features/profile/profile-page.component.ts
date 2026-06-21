@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
-import { Trainer } from "../../api/models";
+import { Trainer, Team, PokemonListItem, PokemonStat } from "../../api/models";
 import { TrainerStore } from "../../state/trainer.store";
 import { PokemonStore } from "../../state/pokemon.store";
 
@@ -49,6 +49,8 @@ export class ProfilePageComponent {
 
   public readonly avatarPreview = signal<string | null>(null);
   public readonly brokenAvatarUrls = signal<Set<string>>(new Set());
+  public readonly selectedTeam = signal<Team | null>(null);
+  public readonly showTeamModal = signal(false);
 
   public readonly rankOptions = [
     { value: "Novice", label: "Novice" },
@@ -289,9 +291,82 @@ export class ProfilePageComponent {
    * @param id - Pokemon ID
    * @returns Pokemon or undefined
    */
-  public getPokemonById(id: number) {
+  public getPokemonById(id: number): PokemonListItem | undefined {
     const pokemonState = this.pokemonStore.getSnapshot();
-    return pokemonState.pokemonById[id];
+    const pokemon = pokemonState.pokemonById[id];
+    
+    if (pokemon) {
+      // Ensure spriteUrl is set, even if it's null in seed data
+      return {
+        ...pokemon,
+        spriteUrl: pokemon.spriteUrl || this.generateSpriteUrl(id)
+      };
+    }
+    
+    return undefined;
+  }
+
+  /**
+   * Generates a sprite URL for a Pokemon by ID.
+   *
+   * @param id - Pokemon ID
+   * @returns Sprite URL
+   */
+  private generateSpriteUrl(id: number): string {
+    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+  }
+
+  /**
+   * Handles image loading errors for Pokemon sprites.
+   * Returns null to trigger the fallback placeholder.
+   *
+   * @param event - Image error event
+   * @returns null to indicate the image failed to load
+   */
+  public onPokemonSpriteError(event: Event): null {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    
+    // Find and show the placeholder
+    const parent = img.parentElement;
+    if (parent) {
+      const placeholder = parent.querySelector('.sprite-placeholder');
+      if (placeholder) {
+        (placeholder as HTMLElement).style.display = 'flex';
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Gets a stat value from Pokemon stats array.
+   *
+   * @param stats - Pokemon stats array
+   * @param statName - Name of the stat to find
+   * @returns The stat value or 0 if not found
+   */
+  public getStatValue(stats: PokemonStat[], statName: string): number {
+    const stat = stats.find(s => s.name === statName);
+    return stat ? stat.base_stat : 0;
+  }
+
+  /**
+   * Opens the team details modal.
+   *
+   * @param team - Team to show details for
+   */
+  public openTeamModal(team: Team): void {
+    this.selectedTeam.set(team);
+    this.showTeamModal.set(true);
+  }
+
+  /**
+   * Closes the team details modal.
+   */
+  public closeTeamModal(): void {
+    this.showTeamModal.set(false);
+    this.selectedTeam.set(null);
   }
 
   /**

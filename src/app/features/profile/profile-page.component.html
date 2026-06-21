@@ -147,7 +147,7 @@
 
       <div class="teams-grid">
         @for (team of teamsWithMembers(); track team.id) {
-          <article class="team-card">
+          <article class="team-card" (click)="openTeamModal(team)">
             <div class="team-card-header">
               <div class="team-name">{{ team.name }}</div>
             </div>
@@ -162,4 +162,91 @@
       </div>
     </section>
   </div>
+
+  <!-- Team Details Modal -->
+  @if (showTeamModal() && selectedTeam(); as team) {
+    <div class="modal-overlay" (click)="closeTeamModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">{{ team.name }}</h2>
+          <button class="modal-close" (click)="closeTeamModal()" aria-label="Close modal">
+            ✕
+          </button>
+        </div>
+        
+        <div class="modal-content">
+          <div class="team-info-section">
+            <div class="info-row">
+              <span class="info-label">Created:</span>
+              <span class="info-value">{{ formatTeamDate(team.created_at) }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Team Size:</span>
+              <span class="info-value">{{ team.pokemon_ids.length }} Pokémon</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Team ID:</span>
+              <span class="info-value">#{{ team.id }}</span>
+            </div>
+          </div>
+
+          <div class="pokemon-list-section">
+            <h3 class="section-title">Team Members</h3>
+            @if (team.pokemon_ids.length > 0) {
+              <div class="pokemon-grid">
+                @for (pokemonId of team.pokemon_ids; track pokemonId) {
+                  @let pokemon = getPokemonById(pokemonId);
+                  @if (pokemon) {
+                    <div class="pokemon-card">
+                      <div class="pokemon-sprite">
+                        <img 
+                          [src]="pokemon.spriteUrl" 
+                          [alt]="pokemon.name" 
+                          [style.display]="pokemon.spriteUrl ? 'block' : 'none'"
+                          (error)="onPokemonSpriteError($event)"
+                        />
+                        <div class="sprite-placeholder">?</div>
+                      </div>
+                      <div class="pokemon-info">
+                        <div class="pokemon-name">#{{ pokemonId }} {{ pokemon.name }}</div>
+                        <div class="pokemon-types">
+                          @for (type of pokemon.types; track type) {
+                            <span class="type-badge" [class]="'type-' + type">{{ type }}</span>
+                          }
+                        </div>
+                        <div class="pokemon-stats">
+                          <span class="stat">HP: {{ getStatValue(pokemon.stats, 'hp') }}</span>
+                          <span class="stat">ATK: {{ getStatValue(pokemon.stats, 'attack') }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="pokemon-card loading">
+                      <div class="pokemon-sprite">
+                        <div class="sprite-placeholder">?</div>
+                      </div>
+                      <div class="pokemon-info">
+                        <div class="pokemon-name">#{{ pokemonId }} Loading...</div>
+                        <div class="pokemon-types">
+                          <span class="type-badge type-unknown">Unknown</span>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            } @else {
+              <p class="empty-message">No Pokémon in this team.</p>
+            }
+          </div>
+
+          <div class="modal-actions">
+            <button class="modal-button close-button" (click)="closeTeamModal()">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </section>
