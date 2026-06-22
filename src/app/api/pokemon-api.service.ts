@@ -34,6 +34,16 @@ const GET_POKEMON_PAGE = gql`
   }
 `;
 
+const GET_POKEMON_COUNT = gql`
+  query GetPokemonCount {
+    pokemon_v2_pokemon_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+`;
+
 const GET_POKEMON_DETAILS = gql`
   query GetPokemonDetails($id: Int!) {
     pokemon_v2_pokemon_by_pk(id: $id) {
@@ -198,6 +208,29 @@ export class PokemonApiService {
             })),
           ),
         ),
+      );
+  }
+
+  /**
+   * Gets the total count of Pokémon available in the API.
+   *
+   * @returns Observable<number> - Stream of total Pokémon count
+   */
+  public getPokemonCount(): Observable<number> {
+    return this.apollo
+      .query<{
+        pokemon_v2_pokemon_aggregate: {
+          aggregate: {
+            count: number;
+          };
+        };
+      }>({
+        query: GET_POKEMON_COUNT,
+        fetchPolicy: "network-only",
+      })
+      .pipe(
+        retry({ count: 3, delay: (_err, retryIndex) => timer(300 * (retryIndex + 1)) }),
+        map((res) => res.data?.pokemon_v2_pokemon_aggregate?.aggregate?.count ?? 0),
       );
   }
 

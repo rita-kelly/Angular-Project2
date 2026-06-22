@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, injec
 import { toSignal } from "@angular/core/rxjs-interop";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { BehaviorSubject, filter, startWith } from "rxjs";
+import { BehaviorSubject, filter, startWith, from, concatMap, take, switchMap, finalize } from "rxjs";
 import { PokemonStore } from "../../state/pokemon.store";
 import { pokemonSearchResults$ } from "../../state/pokemon.selectors";
 import { totalBaseStats } from "../../api/pokeapi.util";
@@ -61,6 +61,7 @@ export class PokedexPageComponent {
   public readonly error = computed(() => this.state().error);
 
   public readonly mode = signal<"paged" | "virtual">("paged");
+  public readonly loadingAll = signal(false);
   public readonly pageSize = signal<10 | 25 | 50>(25);
   public readonly pageIndex = signal(0);
 
@@ -227,12 +228,16 @@ export class PokedexPageComponent {
     return p.stats.find((s) => s.name === statName)?.base_stat ?? 0;
   }
 
+  public readonly hasLoadedAll = signal(false);
+  private readonly hasAttemptedLoad = signal(false);
+
   /**
    * Loads initial data for the page.
    */
   public readonly initEffect = effect(() => {
-    if (this.state().pokemonIds.length) return;
-    this.loadMore();
+    if (this.hasLoadedAll() || this.hasAttemptedLoad()) return;
+    this.hasAttemptedLoad.set(true);
+    this.loadAllPokemon();
   });
 
   /**
@@ -242,6 +247,50 @@ export class PokedexPageComponent {
     const offset = this.offsetSubject.getValue();
     this.store.loadPokemonPage(this.limit, offset).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     this.offsetSubject.next(offset + this.limit);
+  }
+
+  /**
+   * Loads all Pokémon from the API in batches.
+   */
+  public loadAllPokemon(): void {
+    this.loadingAll.set(true);
+    
+    // First, get the total count
+    this.store.loadPokemonCount().pipe(
+      takeUntilDestroyed(this.destroyRef),
+      switchMap((totalCount) => {
+        console.log(`Total Pokémon count: ${totalCount}`);
+        
+        // Load all Pokémon in batches
+        const batchSize = 100; // Load 100 at a time
+        const batches = Math.ceil(totalCount / batchSize);
+        
+        // Create an array of observables for each batch
+        const batchObservables = [];
+        for (let i = 0; i < batches; i++) {
+          const offset = i * batchSize;
+          batchObservables.push(this.store.loadPokemonPage(batchSize, offset));
+        }
+        
+        // Load all batches sequentially
+        return from(batchObservables).pipe(
+          concatMap((obs) => obs),
+          take(batches)
+        );
+      })
+    ).subscribe({
+      next: () => {
+        // Only set hasLoadedAll to true when all batches are successfully loaded
+        this.hasLoadedAll.set(true);
+      },
+      error: () => {
+        // Don't set hasLoadedAll on error
+        this.hasLoadedAll.set(false);
+      },
+      complete: () => {
+        this.loadingAll.set(false);
+      }
+    });
   }
 
   /**

@@ -303,6 +303,11 @@ export class ProfilePageComponent {
       };
     }
     
+    // Try to load the Pokemon details if not in store
+    this.pokemonStore.loadPokemonDetails(id).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe();
+    
     return undefined;
   }
 

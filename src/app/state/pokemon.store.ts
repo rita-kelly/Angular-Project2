@@ -9,9 +9,11 @@ export interface PokemonState {
   pokemonIds: number[];
   detailsById: Record<number, PokemonDetails>;
   typeEfficacies: TypeEfficacyRow[] | null;
+  totalCount: number | null;
   loadingList: boolean;
   loadingDetails: boolean;
   loadingTypes: boolean;
+  loadingCount: boolean;
   error: string | null;
 }
 
@@ -20,9 +22,11 @@ const INITIAL_STATE: PokemonState = {
   pokemonIds: POKEMON_SEED.map((p) => p.id),
   detailsById: {},
   typeEfficacies: null,
+  totalCount: null,
   loadingList: false,
   loadingDetails: false,
   loadingTypes: false,
+  loadingCount: false,
   error: null,
 };
 
@@ -138,6 +142,29 @@ export class PokemonStore {
       catchError((err) => {
         this.patchState({ error: this.toErrorMessage(err) });
         return of([]);
+      }),
+    );
+  }
+
+  /**
+   * Loads the total count of Pokémon available in the API.
+   *
+   * @returns Observable<number> - Stream of total count
+   */
+  public loadPokemonCount(): Observable<number> {
+    const cached = this.getSnapshot().totalCount;
+    if (cached !== null) {
+      return of(cached);
+    }
+
+    this.patchState({ loadingCount: true, error: null });
+    return this.getApi().pipe(
+      switchMap((api) => api.getPokemonCount()),
+      tap((count) => this.patchState({ totalCount: count })),
+      finalize(() => this.patchState({ loadingCount: false })),
+      catchError((err) => {
+        this.patchState({ error: this.toErrorMessage(err) });
+        return of(0);
       }),
     );
   }
