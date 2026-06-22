@@ -15,21 +15,40 @@
 
   <div class="grid">
     <section class="panel identity">
-      <div class="avatar">
-        @if (avatarPreview(); as previewUrl) {
-          <img [src]="previewUrl" [alt]="currentTrainer()?.name ?? 'Trainer avatar'" />
-        } @else {
-          @let avatarUrl = currentTrainer()?.avatar_url;
-          @if (shouldShowAvatar(avatarUrl)) {
-            <img 
-              [src]="avatarUrl" 
-              [alt]="currentTrainer()?.name ?? 'Trainer avatar'" 
-              (error)="onAvatarError(avatarUrl!)"
-            />
-          } @else {
-            <span>{{ initials() }}</span>
+      <div class="avatar-container">
+        <div class="avatar-wrapper" (click)="onAvatarClick()">
+          <div class="avatar">
+            @if (avatarPreview(); as previewUrl) {
+              <img [src]="previewUrl" [alt]="currentTrainer()?.name ?? 'Trainer avatar'" />
+            } @else {
+              @let formAvatarUrl = form.controls.avatarUrl.value;
+              @if (formAvatarUrl && formAvatarUrl.trim() !== '') {
+                @if (shouldShowAvatar(formAvatarUrl)) {
+                  <img 
+                    [src]="formAvatarUrl" 
+                    [alt]="currentTrainer()?.name ?? 'Trainer avatar'" 
+                    (error)="onAvatarError(formAvatarUrl!)"
+                  />
+                } @else {
+                  <span>{{ initials() }}</span>
+                }
+              } @else {
+                <span>{{ initials() }}</span>
+              }
+            }
+          </div>
+          <div class="avatar-overlay">
+            <span class="change-text">Change Avatar</span>
+          </div>
+          @if (avatarPreview() || (form.controls.avatarUrl.value && form.controls.avatarUrl.value.trim() !== '')) {
+            <button class="avatar-remove-btn" (click)="removeAvatar($event)" title="Remove avatar">
+              <svg class="trash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/>
+              </svg>
+            </button>
           }
-        }
+        </div>
+        <input type="file" #avatarInput accept="image/*" (change)="onFileSelected($event)" hidden />
       </div>
 
       <div class="identity-text">
@@ -82,7 +101,7 @@
         <div class="row">
           <label class="field">
             <span>Badge count</span>
-            <input type="number" min="0" max="16" formControlName="badgeCount" />
+            <input type="number" min="0" max="16" formControlName="badgeCount" readonly />
           </label>
 
           <label class="field">
@@ -91,37 +110,7 @@
           </label>
         </div>
 
-        <div class="avatar-upload-section">
-          <div class="avatar-preview-container">
-            <div class="avatar-preview">
-              @if (avatarPreview(); as previewUrl) {
-                <img [src]="previewUrl" [alt]="currentTrainer()?.name ?? 'Trainer avatar'" />
-              } @else {
-                @let avatarUrl = currentTrainer()?.avatar_url;
-                @if (shouldShowAvatar(avatarUrl)) {
-                  <img 
-                    [src]="avatarUrl" 
-                    [alt]="currentTrainer()?.name ?? 'Trainer avatar'" 
-                    (error)="onAvatarError(avatarUrl!)"
-                  />
-                } @else {
-                  <span>{{ initials() }}</span>
-                }
-              }
-            </div>
-            <div class="avatar-upload-controls">
-              <label class="avatar-upload-button">
-                <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
-                <span>{{ avatarPreview() ? 'Change' : 'Upload' }} Avatar</span>
-              </label>
-              @if (avatarPreview()) {
-                <button type="button" class="avatar-remove-button" (click)="removeAvatar()">
-                  Remove
-                </button>
-              }
-            </div>
-          </div>
-        </div>
+
 
         <label class="field">
           <span>Rank</span>

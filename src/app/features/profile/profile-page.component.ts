@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, ViewChild, ElementRef } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Trainer, Team, PokemonListItem, PokemonStat } from "../../api/models";
@@ -27,12 +27,14 @@ export class ProfilePageComponent {
   public readonly statusMessage = signal<string | null>(null);
   public readonly toastMessage = signal<{message: string, type: 'error' | 'success' | 'warning'} | null>(null);
 
+  @ViewChild('avatarInput') avatarInput!: ElementRef<HTMLInputElement>;
+
   public readonly form = new FormGroup({
     name: new FormControl("", {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(2), Validators.maxLength(40)],
     }),
-    badgeCount: new FormControl(0, {
+    badgeCount: new FormControl({ value: 0, disabled: true }, {
       nonNullable: true,
       validators: [Validators.required, Validators.min(0), Validators.max(16)],
     }),
@@ -120,7 +122,7 @@ export class ProfilePageComponent {
     this.trainerStore
       .updateTrainer(trainer.id, {
         name: value.name.trim(),
-        badge_count: Number(value.badgeCount),
+        badge_count: trainer.badge_count, // Use the current trainer's badge count instead of form value
         region: value.region.trim(),
         avatar_url: value.avatarUrl.trim(),
         rank: value.rank.trim(),
@@ -220,12 +222,39 @@ export class ProfilePageComponent {
   }
 
   /**
+   * Handles avatar click to trigger file input.
+   */
+  public onAvatarClick(): void {
+    this.avatarInput.nativeElement.click();
+  }
+
+  /**
    * Removes the uploaded avatar.
    */
-  public removeAvatar(): void {
+  public removeAvatar(event?: Event): void {
+    if (event) {
+      event.stopPropagation(); // Prevent triggering the avatar click
+    }
+    
+    // Clear avatar preview
     this.avatarPreview.set(null);
+    
+    // Clear form control
     this.form.controls.avatarUrl.setValue('');
     this.form.markAsDirty();
+    
+    // Clear broken URL markers for the current avatar URL
+    const currentAvatarUrl = this.currentTrainer()?.avatar_url;
+    if (currentAvatarUrl) {
+      this.brokenAvatarUrls.update(broken => {
+        const updated = new Set(broken);
+        updated.delete(currentAvatarUrl);
+        return updated;
+      });
+    }
+    
+    // Show success message
+    this.showToast('Avatar removed successfully', 'success');
   }
 
   /**
@@ -380,6 +409,9 @@ export class ProfilePageComponent {
    * @param trainer - Loaded trainer
    */
   private patchForm(trainer: Trainer): void {
+    // Enable the badgeCount control temporarily to patch its value
+    this.form.controls.badgeCount.enable({ emitEvent: false });
+    
     this.form.patchValue(
       {
         name: trainer.name,
@@ -390,6 +422,10 @@ export class ProfilePageComponent {
       },
       { emitEvent: false },
     );
+    
+    // Disable the badgeCount control again after patching
+    this.form.controls.badgeCount.disable({ emitEvent: false });
+    
     this.form.markAsPristine();
     
     // Clear broken URLs for the current avatar URL when loading a new trainer

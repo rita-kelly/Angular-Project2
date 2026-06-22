@@ -67,7 +67,7 @@ export class PokedexPageComponent {
 
   public readonly selectedType = signal<PokemonType | null>(null);
   public readonly highlightType = signal<PokemonType | null>("fire");
-  public readonly minTotal = signal(0);
+  public readonly minTotal = signal(1);
   public readonly maxTotal = signal(800);
 
   public readonly sortKey = signal<SortKey>("id");
@@ -132,7 +132,12 @@ export class PokedexPageComponent {
    * @param target - Input event target
    */
   public setMinTotal(target: EventTarget | null): void {
-    this.minTotal.set(this.numberFromTarget(target, 0));
+    let value = this.numberFromTarget(target, 0);
+    // Ensure minimum value is at least 1
+    value = Math.max(1, value);
+    // Ensure minimum value is not greater than current maximum
+    value = Math.min(value, this.maxTotal());
+    this.minTotal.set(value);
     this.pageIndex.set(0);
   }
 
@@ -142,8 +147,40 @@ export class PokedexPageComponent {
    * @param target - Input event target
    */
   public setMaxTotal(target: EventTarget | null): void {
-    this.maxTotal.set(this.numberFromTarget(target, 800));
+    let value = this.numberFromTarget(target, 800);
+    // Ensure maximum value is at least 1
+    value = Math.max(1, value);
+    // Ensure maximum value is not less than current minimum
+    value = Math.max(value, this.minTotal());
+    this.maxTotal.set(value);
     this.pageIndex.set(0);
+  }
+
+  /**
+   * Handles keydown event for Total stats range inputs.
+   * Resets value to 1 if Enter is pressed and value is less than 1.
+   *
+   * @param event - Keyboard event
+   * @param isMin - Whether this is the minimum input
+   */
+  public handleRangeKeydown(event: KeyboardEvent, isMin: boolean): void {
+    if (event.key === 'Enter') {
+      const input = event.target as HTMLInputElement;
+      let value = input.valueAsNumber;
+      
+      if (isNaN(value) || value < 1) {
+        value = 1;
+        input.value = '1';
+        
+        if (isMin) {
+          this.minTotal.set(1);
+        } else {
+          // Ensure max is at least min value
+          this.maxTotal.set(Math.max(1, this.minTotal()));
+        }
+        this.pageIndex.set(0);
+      }
+    }
   }
 
   /**
@@ -201,6 +238,12 @@ export class PokedexPageComponent {
     const size = this.pageSize();
     const idx = this.pageIndex();
     return list.slice(idx * size, idx * size + size);
+  });
+
+  public readonly totalPages = computed(() => {
+    const list = this.filteredSorted();
+    const size = this.pageSize();
+    return Math.max(1, Math.ceil(list.length / size));
   });
 
   /**

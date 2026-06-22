@@ -1,15 +1,7 @@
 @if (details(); as d) {
   <div class="panel">
     <div class="panel-header">
-      <div class="header-left">
-        <!-- 
-          ============================================================================
-          IMAGE SOURCE (그림원천): 
-          - d.officialArtworkUrl: PokéAPI GraphQL (pokemon_v2_pokemonsprites) 
-            → https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/
-          - d.spriteUrl: https://pokeapi.co/media/sprites/pokemon/{id}.png
-          ============================================================================
-        -->
+      <div class="header-left">    
         <div class="sprite">
           @if (d.officialArtworkUrl ?? d.spriteUrl) {
             <img [src]="d.officialArtworkUrl ?? d.spriteUrl" [alt]="d.name" />
@@ -52,9 +44,9 @@
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowfullscreen
               ></iframe>
-              <button mat-icon-button class="overlay" type="button" (click)="toggleVideo()">
-                <mat-icon>{{ videoOpen() ? "pause" : "play_arrow" }}</mat-icon>
-              </button>
+              <!-- <button mat-icon-button class="overlay" type="button" (click)="toggleVideo()"> -->
+                <!-- <mat-icon>{{ videoOpen() ? "pause" : "play_arrow" }}</mat-icon> -->
+              <!-- </button> -->
             </div>
           </mat-card>
 

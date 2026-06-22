@@ -12,16 +12,16 @@
           <input [formControl]="searchControl" placeholder="Search by name" />
         </label>
 
-        <label class="toggle">
+        <!-- <label class="toggle">
           <input
             type="checkbox"
             [checked]="mode() === 'virtual'"
             (change)="mode.set($any($event.target).checked ? 'virtual' : 'paged')"
           />
           <span>Scroll mode</span>
-        </label>
+        </label> -->
 
-        <button class="primary" type="button" (click)="loadMore()">Load More</button>
+        <!-- <button class="primary" type="button" (click)="loadMore()">Load More</button> -->
       </div>
     </div>
 
@@ -49,9 +49,21 @@
       <div class="range">
         <label>Total stats range</label>
         <div class="range-row">
-          <input type="number" [value]="minTotal()" (input)="setMinTotal($event.target)" />
+          <input 
+            type="number" 
+            [value]="minTotal()" 
+            (input)="setMinTotal($event.target)" 
+            (keydown)="handleRangeKeydown($event, true)"
+            min="1" 
+          />
           <span>to</span>
-          <input type="number" [value]="maxTotal()" (input)="setMaxTotal($event.target)" />
+          <input 
+            type="number" 
+            [value]="maxTotal()" 
+            (input)="setMaxTotal($event.target)" 
+            (keydown)="handleRangeKeydown($event, false)"
+            min="1" 
+          />
         </div>
       </div>
 
@@ -68,7 +80,12 @@
         <button type="button" (click)="prevPage()" [disabled]="mode() === 'virtual' || pageIndex() === 0">
           Prev
         </button>
-        <button type="button" (click)="nextPage()" [disabled]="mode() === 'virtual'">
+        <div class="page-info-display">
+          <span class="current-page">{{ pageIndex() + 1 }}</span>
+          <span class="separator">/</span>
+          <span class="total-pages">{{ totalPages() }}</span>
+        </div>
+        <button type="button" (click)="nextPage()" [disabled]="mode() === 'virtual' || pageIndex() >= totalPages() - 1">
           Next
         </button>
       </div>

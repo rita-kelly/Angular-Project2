@@ -275,3 +275,9 @@
   --mat-tab-header-active-focus-indicator-color: #8b5cf6;
   --mat-tab-header-active-hover-indicator-color: #8b5cf6;
 }
+
+::ng-deep .mat-mdc-tab .mdc-tab__text-label {
+    color: #c9cbd3 !important;
+    display: inline-flex;
+    align-items: center;
+}

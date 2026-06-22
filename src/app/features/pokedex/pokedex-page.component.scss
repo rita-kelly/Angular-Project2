@@ -219,6 +219,38 @@ button:disabled {
 
 .range-row input {
   width: 92px;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  appearance: none;
+}
+
+.range-row input:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(196, 181, 253, 0.4);
+}
+
+/* Completely hide spin buttons and use custom styling */
+.range-row input::-webkit-inner-spin-button,
+.range-row input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+  display: none;
+}
+
+/* Remove all default browser styling for number inputs */
+.range-row input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.range-row input[type="number"]::-webkit-outer-spin-button,
+.range-row input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.range-row span {
+  color: rgba(221, 214, 254, 0.8);
 }
 
 .paging {
@@ -233,6 +265,49 @@ button:disabled {
 
 .page-size {
   width: 110px;
+}
+
+.page-info-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 80px;
+  height: 38px;
+  padding: 0 12px;
+  background-color: #1a1e2c;
+  // background: linear-gradient(135deg, rgba(196, 181, 253, 0.15), rgba(139, 92, 246, 0.1));
+  border: 1px solid rgba(196, 181, 253, 0.3);
+  border-radius: 8px;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.current-page {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #ffffff, #ddd6fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.separator {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(221, 214, 254, 0.7);
+  margin: 0 2px;
+}
+
+.total-pages {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(221, 214, 254, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .bulk {
